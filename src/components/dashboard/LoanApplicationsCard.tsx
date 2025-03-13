@@ -132,7 +132,7 @@ const LoanApplicationsCard = () => {
               {loanApplications.map((loan: LoanApplication) => (
                 <div 
                   key={loan.id} 
-                  className="flex items-center justify-between space-x-4 transition-all duration-200 hover:bg-muted/30 rounded-md p-3 -mx-2 border-b border-gray-100 last:border-0"
+                  className="flex items-center justify-between p-4 border-b border-gray-100 last:border-0"
                 >
                   <div className="flex items-center space-x-4">
                     <Avatar className="h-10 w-10">
@@ -156,7 +156,7 @@ const LoanApplicationsCard = () => {
                         → R{calculateReturningAmount(loan.amount)}
                       </span>
                     </p>
-                    <div className="flex space-x-2 mt-1">
+                    <div className="flex space-x-2 mt-2">
                       <Button 
                         variant="outline" 
                         size="sm"
@@ -199,7 +199,7 @@ const LoanApplicationsCard = () => {
 
       {/* Loan Details Dialog */}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="sm:max-w-[525px]">
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
             <DialogTitle>Loan Application Details</DialogTitle>
             <DialogDescription>
@@ -208,58 +208,62 @@ const LoanApplicationsCard = () => {
           </DialogHeader>
           
           {selectedLoan && (
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <p className="text-sm font-medium col-span-1">Name:</p>
-                <p className="col-span-3">{selectedLoan.name}</p>
+            <div className="grid gap-2 py-2 max-h-[60vh] overflow-y-auto">
+              <div className="grid grid-cols-4 items-center gap-2">
+                <p className="text-xs font-medium col-span-1">Name:</p>
+                <p className="col-span-3 text-sm">{selectedLoan.name}</p>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <p className="text-sm font-medium col-span-1">Email:</p>
-                <p className="col-span-3">{selectedLoan.email}</p>
+              <div className="grid grid-cols-4 items-center gap-2">
+                <p className="text-xs font-medium col-span-1">Email:</p>
+                <p className="col-span-3 text-sm">{selectedLoan.email}</p>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <p className="text-sm font-medium col-span-1">Phone:</p>
-                <p className="col-span-3">{selectedLoan.phone}</p>
+              <div className="grid grid-cols-4 items-center gap-2">
+                <p className="text-xs font-medium col-span-1">Phone:</p>
+                <p className="col-span-3 text-sm">{selectedLoan.phone}</p>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <p className="text-sm font-medium col-span-1">ID Number:</p>
-                <p className="col-span-3">{selectedLoan.id_number}</p>
+              <div className="grid grid-cols-4 items-center gap-2">
+                <p className="text-xs font-medium col-span-1">ID Number:</p>
+                <p className="col-span-3 text-sm">{selectedLoan.id_number}</p>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <p className="text-sm font-medium col-span-1">Gender:</p>
-                <p className="col-span-3">{selectedLoan.gender}</p>
+              <div className="grid grid-cols-4 items-center gap-2">
+                <p className="text-xs font-medium col-span-1">Gender:</p>
+                <p className="col-span-3 text-sm">{selectedLoan.gender}</p>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <p className="text-sm font-medium col-span-1">Date of Birth:</p>
-                <p className="col-span-3">{selectedLoan.dob}</p>
+              <div className="grid grid-cols-4 items-center gap-2">
+                <p className="text-xs font-medium col-span-1">Date of Birth:</p>
+                <p className="col-span-3 text-sm">{selectedLoan.dob}</p>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <p className="text-sm font-medium col-span-1">Address:</p>
-                <p className="col-span-3">{selectedLoan.address}</p>
+              <div className="grid grid-cols-4 items-center gap-2">
+                <p className="text-xs font-medium col-span-1">Address:</p>
+                <p className="col-span-3 text-sm">{selectedLoan.address}</p>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <p className="text-sm font-medium col-span-1">Amount:</p>
-                <p className="col-span-3">R{selectedLoan.amount.toFixed(2)}</p>
+              <div className="grid grid-cols-4 items-center gap-2">
+                <p className="text-xs font-medium col-span-1">Amount:</p>
+                <p className="col-span-3 text-sm">R{selectedLoan.amount.toFixed(2)}</p>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <p className="text-sm font-medium col-span-1">Bank:</p>
-                <p className="col-span-3">{selectedLoan.bank}</p>
+              <div className="grid grid-cols-4 items-center gap-2">
+                <p className="text-xs font-medium col-span-1">Returns:</p>
+                <p className="col-span-3 text-sm">R{calculateReturningAmount(selectedLoan.amount)}</p>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <p className="text-sm font-medium col-span-1">Account:</p>
-                <p className="col-span-3">{selectedLoan.account_number}</p>
+              <div className="grid grid-cols-4 items-center gap-2">
+                <p className="text-xs font-medium col-span-1">Bank:</p>
+                <p className="col-span-3 text-sm">{selectedLoan.bank}</p>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <p className="text-sm font-medium col-span-1">Purpose:</p>
-                <p className="col-span-3">{selectedLoan.purpose}</p>
+              <div className="grid grid-cols-4 items-center gap-2">
+                <p className="text-xs font-medium col-span-1">Account:</p>
+                <p className="col-span-3 text-sm">{selectedLoan.account_number}</p>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <p className="text-sm font-medium col-span-1">Due Date:</p>
-                <p className="col-span-3">{selectedLoan.due_date}</p>
+              <div className="grid grid-cols-4 items-center gap-2">
+                <p className="text-xs font-medium col-span-1">Purpose:</p>
+                <p className="col-span-3 text-sm">{selectedLoan.purpose}</p>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <p className="text-sm font-medium col-span-1">Timestamp:</p>
-                <p className="col-span-3">{new Date(selectedLoan.timestamp).toLocaleString()}</p>
+              <div className="grid grid-cols-4 items-center gap-2">
+                <p className="text-xs font-medium col-span-1">Due Date:</p>
+                <p className="col-span-3 text-sm">{selectedLoan.due_date}</p>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-2">
+                <p className="text-xs font-medium col-span-1">Applied:</p>
+                <p className="col-span-3 text-sm">{new Date(selectedLoan.timestamp).toLocaleString()}</p>
               </div>
             </div>
           )}
@@ -267,6 +271,7 @@ const LoanApplicationsCard = () => {
           <div className="flex justify-end gap-2 mt-4">
             <Button 
               variant="outline" 
+              size="sm"
               onClick={() => setDetailsOpen(false)}
             >
               Close
@@ -274,23 +279,25 @@ const LoanApplicationsCard = () => {
             {selectedLoan && (
               <>
                 <Button 
-                  variant="destructive" 
+                  variant="destructive"
+                  size="sm"
                   onClick={() => {
                     handleRejectLoan(selectedLoan);
                     setDetailsOpen(false);
                   }}
                 >
-                  <X className="h-4 w-4 mr-2" />
+                  <X className="h-4 w-4 mr-1" />
                   Reject
                 </Button>
                 <Button 
-                  variant="default" 
+                  variant="default"
+                  size="sm"
                   onClick={() => {
                     handleApproveLoan(selectedLoan);
                     setDetailsOpen(false);
                   }}
                 >
-                  <Check className="h-4 w-4 mr-2" />
+                  <Check className="h-4 w-4 mr-1" />
                   Approve
                 </Button>
               </>
