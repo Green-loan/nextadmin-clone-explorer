@@ -137,7 +137,7 @@ const Users = () => {
 
   const columns = [
     {
-      accessorKey: 'name',
+      accessorKey: 'name' as keyof User,
       header: 'Name',
       cell: (value: string) => {
         const user = users.find(u => u.name === value) || { email: '' };
@@ -158,11 +158,11 @@ const Users = () => {
       },
     },
     {
-      accessorKey: 'role',
+      accessorKey: 'role' as keyof User,
       header: 'Role',
     },
     {
-      accessorKey: 'status',
+      accessorKey: 'status' as keyof User,
       header: 'Status',
       cell: (value: 'active' | 'inactive') => {
         return value === 'active' ? (
@@ -179,11 +179,11 @@ const Users = () => {
       },
     },
     {
-      accessorKey: 'createdAt',
+      accessorKey: 'createdAt' as keyof User,
       header: 'Created At',
     },
     {
-      accessorKey: 'id',
+      accessorKey: 'id' as keyof User,
       header: 'Actions',
       cell: (id: string) => {
         return (
