@@ -3,37 +3,29 @@ import { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-// Sample data
-const initialData = [
-  { name: 'Jan', total: 2400 },
-  { name: 'Feb', total: 1398 },
-  { name: 'Mar', total: 9800 },
-  { name: 'Apr', total: 3908 },
-  { name: 'May', total: 4800 },
-  { name: 'Jun', total: 3800 },
-  { name: 'Jul', total: 4300 },
-];
+interface OverviewProps {
+  chartData?: { name: string; total: number }[];
+}
 
-const Overview = () => {
-  const [data, setData] = useState<typeof initialData>([]);
+const Overview = ({ chartData = [] }: OverviewProps) => {
+  const [data, setData] = useState<typeof chartData>([]);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    // Simulate loading data
-    const timer = setTimeout(() => {
-      setData(initialData);
-    }, 600);
-    return () => clearTimeout(timer);
-  }, []);
+    // Use the provided chart data or initialize with empty array
+    if (chartData && chartData.length > 0) {
+      setData(chartData);
+    }
+  }, [chartData]);
 
   if (!mounted) return null;
 
   return (
     <Card className="col-span-4 hover-scale">
       <CardHeader className="pb-2">
-        <CardTitle>Overview</CardTitle>
-        <CardDescription>Monthly revenue for current year</CardDescription>
+        <CardTitle>Revenue Overview</CardTitle>
+        <CardDescription>Monthly revenue (in Rands) for current year</CardDescription>
       </CardHeader>
       <CardContent className="pt-2">
         <div className="h-[300px] w-full">
@@ -54,6 +46,8 @@ const Overview = () => {
                   tickLine={false}
                   axisLine={false}
                   style={{ fontSize: '12px' }}
+                  // Format Y-axis labels with R prefix for Rands
+                  tickFormatter={(value) => `R${value}`}
                 />
                 <Tooltip 
                   contentStyle={{ 
@@ -62,6 +56,8 @@ const Overview = () => {
                     border: 'none'
                   }}
                   cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
+                  // Format tooltip values with R prefix for Rands
+                  formatter={(value) => [`R${value}`, 'Revenue']}
                 />
                 <Bar 
                   dataKey="total" 

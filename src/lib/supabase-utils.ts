@@ -1,4 +1,3 @@
-
 import { supabase } from './supabase';
 
 // Users account functions
@@ -51,6 +50,132 @@ export async function getRejectedLoans() {
   
   if (error) throw error;
   return data || [];
+}
+
+// New functions for calculating loan metrics
+export async function getTotalLoanRevenue() {
+  try {
+    const { data, error } = await supabase
+      .from('approved_loans')
+      .select('amount');
+    
+    if (error) throw error;
+    
+    // Calculate total revenue (assuming 10% interest rate)
+    const interestRate = 0.1; // 10% interest
+    const totalAmount = data?.reduce((sum, loan) => sum + parseFloat(loan.amount || 0), 0) || 0;
+    const revenue = totalAmount * interestRate;
+    
+    return {
+      totalRevenue: revenue.toFixed(2),
+      totalAmount: totalAmount.toFixed(2)
+    };
+  } catch (error) {
+    console.error('Error calculating total loan revenue:', error);
+    throw error;
+  }
+}
+
+export async function getMonthlyLoanStats() {
+  try {
+    const currentDate = new Date();
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+    
+    // Calculate previous month
+    const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+    const prevMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+    
+    // Get current month's data
+    const { data: currentMonthData, error: currentError } = await supabase
+      .from('approved_loans')
+      .select('amount, timestamp')
+      .gte('timestamp', new Date(currentYear, currentMonth, 1).toISOString())
+      .lt('timestamp', new Date(currentYear, currentMonth + 1, 1).toISOString());
+    
+    if (currentError) throw currentError;
+    
+    // Get previous month's data
+    const { data: prevMonthData, error: prevError } = await supabase
+      .from('approved_loans')
+      .select('amount, timestamp')
+      .gte('timestamp', new Date(prevMonthYear, prevMonth, 1).toISOString())
+      .lt('timestamp', new Date(prevMonthYear, prevMonth + 1, 1).toISOString());
+    
+    if (prevError) throw prevError;
+    
+    // Calculate totals (assuming 10% interest rate)
+    const interestRate = 0.1; // 10% interest
+    
+    const currentMonthAmount = currentMonthData?.reduce((sum, loan) => sum + parseFloat(loan.amount || 0), 0) || 0;
+    const currentMonthRevenue = currentMonthAmount * interestRate;
+    
+    const prevMonthAmount = prevMonthData?.reduce((sum, loan) => sum + parseFloat(loan.amount || 0), 0) || 0;
+    const prevMonthRevenue = prevMonthAmount * interestRate;
+    
+    // Calculate percentage change
+    const revenueChange = prevMonthRevenue === 0 
+      ? 100 // If previous month was 0, show 100% increase
+      : ((currentMonthRevenue - prevMonthRevenue) / prevMonthRevenue) * 100;
+    
+    const amountChange = prevMonthAmount === 0
+      ? 100 // If previous month was 0, show 100% increase
+      : ((currentMonthAmount - prevMonthAmount) / prevMonthAmount) * 100;
+    
+    return {
+      currentMonthRevenue: currentMonthRevenue.toFixed(2),
+      prevMonthRevenue: prevMonthRevenue.toFixed(2),
+      revenueChange: revenueChange.toFixed(1),
+      currentMonthAmount: currentMonthAmount.toFixed(2),
+      prevMonthAmount: prevMonthAmount.toFixed(2),
+      amountChange: amountChange.toFixed(1)
+    };
+  } catch (error) {
+    console.error('Error calculating monthly loan stats:', error);
+    throw error;
+  }
+}
+
+export async function getMonthlyRevenueData() {
+  try {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    
+    // Get all approved loans for the current year
+    const { data, error } = await supabase
+      .from('approved_loans')
+      .select('amount, timestamp')
+      .gte('timestamp', new Date(currentYear, 0, 1).toISOString())
+      .lt('timestamp', new Date(currentYear + 1, 0, 1).toISOString());
+    
+    if (error) throw error;
+    
+    // Initialize monthly data
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthlyData = monthNames.map(name => ({ name, total: 0 }));
+    
+    // Calculate revenue for each month (10% interest)
+    const interestRate = 0.1;
+    
+    data?.forEach(loan => {
+      const loanDate = new Date(loan.timestamp);
+      const month = loanDate.getMonth();
+      const amount = parseFloat(loan.amount || '0');
+      const revenue = amount * interestRate;
+      
+      monthlyData[month].total += revenue;
+    });
+    
+    // Round to 2 decimal places
+    monthlyData.forEach(item => {
+      item.total = parseFloat(item.total.toFixed(2));
+    });
+    
+    return monthlyData;
+  } catch (error) {
+    console.error('Error calculating monthly revenue data:', error);
+    throw error;
+  }
 }
 
 // New functions for approving and rejecting loans with improved error handling

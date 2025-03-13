@@ -1,10 +1,12 @@
 
 import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import Layout from '@/components/layout/Layout';
 import StatCard from '@/components/dashboard/StatCard';
 import ActivityChart from '@/components/dashboard/ActivityChart';
 import LoanApplicationsCard from '@/components/dashboard/LoanApplicationsCard';
 import Overview from '@/components/dashboard/Overview';
+import RecentSales from '@/components/dashboard/RecentSales';
 import { 
   DollarSign, 
   Users, 
@@ -12,18 +14,41 @@ import {
   Activity
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { getTotalLoanRevenue, getMonthlyLoanStats, getMonthlyRevenueData } from '@/lib/supabase-utils';
 
 const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    // Simulate data loading
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 1000);
+  // Fetch loan revenue and stats
+  const { data: revenueData } = useQuery({
+    queryKey: ['loanRevenue'],
+    queryFn: getTotalLoanRevenue,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
 
-    return () => clearTimeout(timer);
-  }, []);
+  // Fetch monthly stats for comparison
+  const { data: monthlyStats } = useQuery({
+    queryKey: ['monthlyLoanStats'],
+    queryFn: getMonthlyLoanStats,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+
+  // Fetch monthly revenue data for chart
+  const { data: chartData } = useQuery({
+    queryKey: ['monthlyRevenueData'],
+    queryFn: getMonthlyRevenueData,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+
+  useEffect(() => {
+    // Set loading state based on data availability
+    if (revenueData && monthlyStats) {
+      setIsLoading(false);
+    }
+  }, [revenueData, monthlyStats]);
 
   return (
     <Layout>
@@ -39,47 +64,47 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard
             title="Total Revenue"
-            value="$45,231.89"
+            value={isLoading ? 'Loading...' : `R${revenueData?.totalRevenue || '0.00'}`}
             description="vs. previous month"
             icon={DollarSign}
-            trend={20.1}
+            trend={monthlyStats?.revenueChange ? parseFloat(monthlyStats.revenueChange) : 0}
             className={isLoading ? "animate-pulse" : ""}
           />
           <StatCard
             title="New Customers"
-            value="2,350"
+            value="0"
             description="vs. previous month"
             icon={Users}
-            trend={5.5}
+            trend={0}
             className={isLoading ? "animate-pulse" : ""}
           />
           <StatCard
-            title="Sales Today"
-            value="$12,234.00"
-            description="vs. previous day"
+            title="Total Loan Amount"
+            value={isLoading ? 'Loading...' : `R${revenueData?.totalAmount || '0.00'}`}
+            description="vs. previous month"
             icon={CreditCard}
-            trend={-3.2}
+            trend={monthlyStats?.amountChange ? parseFloat(monthlyStats.amountChange) : 0}
             className={isLoading ? "animate-pulse" : ""}
           />
           <StatCard
             title="Active Sessions"
-            value="568"
+            value="0"
             description="Last 24 hours"
             icon={Activity}
-            trend={12.2}
+            trend={0}
             className={isLoading ? "animate-pulse" : ""}
           />
         </div>
 
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
-          <ActivityChart />
+          <Overview chartData={chartData || []} />
           <LoanApplicationsCard />
         </div>
 
-        {/* Overview */}
+        {/* Recent Sales */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Overview />
+          <RecentSales />
         </div>
 
         {/* Quick Actions */}
@@ -87,9 +112,9 @@ const Dashboard = () => {
           <Card className="hover-scale">
             <CardContent className="p-6">
               <div className="space-y-2">
-                <h3 className="text-lg font-medium">Welcome to NextAdmin</h3>
+                <h3 className="text-lg font-medium">Welcome to Loan Management</h3>
                 <p className="text-sm text-muted-foreground">
-                  This is a demo dashboard for NextAdmin. Explore the features and components available in this admin dashboard template.
+                  This dashboard provides an overview of your loan business metrics and performance.
                 </p>
               </div>
             </CardContent>
@@ -99,7 +124,7 @@ const Dashboard = () => {
               <div className="space-y-2">
                 <h3 className="text-lg font-medium">Need Help?</h3>
                 <p className="text-sm text-muted-foreground">
-                  Check out our documentation for more information on how to use NextAdmin or contact our support team.
+                  Check out our documentation for more information on how to use the loan management system.
                 </p>
               </div>
             </CardContent>
@@ -109,7 +134,7 @@ const Dashboard = () => {
               <div className="space-y-2">
                 <h3 className="text-lg font-medium">What's New</h3>
                 <p className="text-sm text-muted-foreground">
-                  We've added new features and improvements to NextAdmin. Check out our changelog to see what's new.
+                  Revenue tracking and loan metrics are now available in your dashboard.
                 </p>
               </div>
             </CardContent>
