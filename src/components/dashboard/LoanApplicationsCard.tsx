@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -118,9 +117,9 @@ const LoanApplicationsCard = () => {
               : 'No pending loan applications'}
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="max-h-[360px] overflow-y-auto">
           {isLoading ? (
-            <div className="h-[300px] flex items-center justify-center">
+            <div className="h-[200px] flex items-center justify-center">
               <div className="animate-pulse flex space-x-4">
                 <div className="h-3 w-3 bg-muted rounded-full animation-delay-200"></div>
                 <div className="h-3 w-3 bg-muted rounded-full animation-delay-400"></div>
@@ -128,60 +127,60 @@ const LoanApplicationsCard = () => {
               </div>
             </div>
           ) : loanApplications && loanApplications.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {loanApplications.map((loan: LoanApplication) => (
                 <div 
                   key={loan.id} 
-                  className="flex items-center justify-between p-4 border-b border-gray-100 last:border-0"
+                  className="flex items-center justify-between p-3 border border-gray-100 rounded-md"
                 >
-                  <div className="flex items-center space-x-4">
-                    <Avatar className="h-10 w-10">
+                  <div className="flex items-center space-x-3 max-w-[60%]">
+                    <Avatar className="h-8 w-8 flex-shrink-0">
                       <AvatarImage src="/placeholder.svg" alt={loan.name} />
-                      <AvatarFallback className="bg-primary text-primary-foreground">
+                      <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                         {getNameInitials(loan.name)}
                       </AvatarFallback>
                     </Avatar>
-                    <div>
-                      <p className="text-sm font-medium">{loan.name}</p>
-                      <p className="text-xs text-muted-foreground">{loan.email || loan.phone}</p>
+                    <div className="overflow-hidden">
+                      <p className="text-sm font-medium truncate">{loan.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{loan.email || loan.phone}</p>
                       <p className="text-xs font-medium text-muted-foreground">
                         Due: {new Date(loan.due_date).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
                   <div className="flex flex-col items-end">
-                    <p className="text-sm font-medium text-green-600 dark:text-green-400">
+                    <p className="text-xs font-medium text-green-600 dark:text-green-400 whitespace-nowrap">
                       R{loan.amount.toFixed(2)} 
                       <span className="text-xs text-muted-foreground ml-1">
                         → R{calculateReturningAmount(loan.amount)}
                       </span>
                     </p>
-                    <div className="flex space-x-2 mt-2">
+                    <div className="flex gap-1 mt-1">
                       <Button 
                         variant="outline" 
                         size="sm"
-                        className="h-7 px-2 text-green-600 hover:bg-green-50 hover:text-green-700"
+                        className="h-6 px-1.5 text-xs text-green-600 hover:bg-green-50 hover:text-green-700"
                         onClick={() => handleApproveLoan(loan)}
                       >
-                        <Check className="h-3.5 w-3.5 mr-1" />
+                        <Check className="h-3 w-3 mr-1" />
                         Approve
                       </Button>
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="h-7 px-2 text-red-600 hover:bg-red-50 hover:text-red-700"
+                        className="h-6 px-1.5 text-xs text-red-600 hover:bg-red-50 hover:text-red-700"
                         onClick={() => handleRejectLoan(loan)}
                       >
-                        <X className="h-3.5 w-3.5 mr-1" />
+                        <X className="h-3 w-3 mr-1" />
                         Reject
                       </Button>
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="h-7 px-2 text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                        className="h-6 px-1.5 text-xs text-blue-600 hover:bg-blue-50 hover:text-blue-700"
                         onClick={() => handleViewDetails(loan)}
                       >
-                        <Eye className="h-3.5 w-3.5 mr-1" />
+                        <Eye className="h-3 w-3 mr-0.5" />
                         Details
                       </Button>
                     </div>
@@ -190,7 +189,7 @@ const LoanApplicationsCard = () => {
               ))}
             </div>
           ) : (
-            <div className="h-[300px] flex items-center justify-center">
+            <div className="h-[200px] flex items-center justify-center">
               <p className="text-muted-foreground">No loan applications found</p>
             </div>
           )}
@@ -199,7 +198,7 @@ const LoanApplicationsCard = () => {
 
       {/* Loan Details Dialog */}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
             <DialogTitle>Loan Application Details</DialogTitle>
             <DialogDescription>
@@ -208,7 +207,7 @@ const LoanApplicationsCard = () => {
           </DialogHeader>
           
           {selectedLoan && (
-            <div className="grid gap-2 py-2 max-h-[60vh] overflow-y-auto">
+            <div className="grid gap-2 py-2 max-h-[50vh] overflow-y-auto text-sm">
               <div className="grid grid-cols-4 items-center gap-2">
                 <p className="text-xs font-medium col-span-1">Name:</p>
                 <p className="col-span-3 text-sm">{selectedLoan.name}</p>
@@ -268,7 +267,7 @@ const LoanApplicationsCard = () => {
             </div>
           )}
 
-          <div className="flex justify-end gap-2 mt-4">
+          <div className="flex justify-end gap-2 mt-2">
             <Button 
               variant="outline" 
               size="sm"
@@ -286,7 +285,7 @@ const LoanApplicationsCard = () => {
                     setDetailsOpen(false);
                   }}
                 >
-                  <X className="h-4 w-4 mr-1" />
+                  <X className="h-3.5 w-3.5 mr-1" />
                   Reject
                 </Button>
                 <Button 
@@ -297,7 +296,7 @@ const LoanApplicationsCard = () => {
                     setDetailsOpen(false);
                   }}
                 >
-                  <Check className="h-4 w-4 mr-1" />
+                  <Check className="h-3.5 w-3.5 mr-1" />
                   Approve
                 </Button>
               </>
