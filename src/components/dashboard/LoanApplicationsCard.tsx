@@ -30,6 +30,7 @@ const LoanApplicationsCard = () => {
   const queryClient = useQueryClient();
   const [selectedLoan, setSelectedLoan] = useState<LoanApplication | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   
   // Fetch loan applications with a more reliable staleTime
   const { data: loanApplications, isLoading } = useQuery({
@@ -40,9 +41,12 @@ const LoanApplicationsCard = () => {
     retry: 3
   });
 
-  // Approve loan mutation
+  // Approve loan mutation with improved error handling
   const approveLoanMutation = useMutation({
-    mutationFn: (loan: LoanApplication) => approveLoan(loan),
+    mutationFn: (loan: LoanApplication) => {
+      setIsProcessing(true);
+      return approveLoan(loan);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['loanApplications'] });
       queryClient.invalidateQueries({ queryKey: ['approvedLoans'] });
@@ -50,19 +54,25 @@ const LoanApplicationsCard = () => {
         title: 'Loan Approved',
         description: 'The loan application has been approved successfully.',
       });
+      setIsProcessing(false);
     },
     onError: (error) => {
+      console.error('Approve loan mutation error:', error);
       toast({
         variant: 'destructive',
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to approve the loan',
       });
+      setIsProcessing(false);
     }
   });
 
-  // Reject loan mutation
+  // Reject loan mutation with improved error handling
   const rejectLoanMutation = useMutation({
-    mutationFn: (loan: LoanApplication) => rejectLoan(loan),
+    mutationFn: (loan: LoanApplication) => {
+      setIsProcessing(true);
+      return rejectLoan(loan);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['loanApplications'] });
       queryClient.invalidateQueries({ queryKey: ['rejectedLoans'] });
@@ -70,13 +80,16 @@ const LoanApplicationsCard = () => {
         title: 'Loan Rejected',
         description: 'The loan application has been rejected.',
       });
+      setIsProcessing(false);
     },
     onError: (error) => {
+      console.error('Reject loan mutation error:', error);
       toast({
         variant: 'destructive',
         title: 'Error',
         description: error instanceof Error ? error.message : 'Failed to reject the loan',
       });
+      setIsProcessing(false);
     }
   });
 
@@ -94,13 +107,17 @@ const LoanApplicationsCard = () => {
     return (amount * 1.4).toFixed(2);
   };
 
-  // Handle approve loan
+  // Handle approve loan with error handling
   const handleApproveLoan = (loan: LoanApplication) => {
+    if (isProcessing) return;
+    console.log('Approving loan with ID:', loan.id);
     approveLoanMutation.mutate(loan);
   };
 
-  // Handle reject loan
+  // Handle reject loan with error handling
   const handleRejectLoan = (loan: LoanApplication) => {
+    if (isProcessing) return;
+    console.log('Rejecting loan with ID:', loan.id);
     rejectLoanMutation.mutate(loan);
   };
 
@@ -193,6 +210,7 @@ const LoanApplicationsCard = () => {
                         size="sm"
                         className="h-5 px-1 text-[10px] text-green-600 hover:bg-green-50 hover:text-green-700"
                         onClick={() => handleApproveLoan(loan)}
+                        disabled={isProcessing || approveLoanMutation.isPending}
                       >
                         <Check className="h-3 w-3 mr-0.5" />
                         Approve
@@ -202,6 +220,7 @@ const LoanApplicationsCard = () => {
                         size="sm" 
                         className="h-5 px-1 text-[10px] text-red-600 hover:bg-red-50 hover:text-red-700"
                         onClick={() => handleRejectLoan(loan)}
+                        disabled={isProcessing || rejectLoanMutation.isPending}
                       >
                         <X className="h-3 w-3 mr-0.5" />
                         Reject
@@ -211,6 +230,7 @@ const LoanApplicationsCard = () => {
                         size="sm" 
                         className="h-5 w-5 p-0 text-[10px] text-blue-600 hover:bg-blue-50 hover:text-blue-700"
                         onClick={() => handleViewDetails(loan)}
+                        disabled={isProcessing}
                       >
                         <Eye className="h-3 w-3" />
                       </Button>
@@ -301,6 +321,7 @@ const LoanApplicationsCard = () => {
                     handleRejectLoan(selectedLoan);
                     setDetailsOpen(false);
                   }}
+                  disabled={isProcessing || rejectLoanMutation.isPending}
                 >
                   <X className="h-3 w-3 mr-0.5" />
                   Reject
@@ -313,6 +334,7 @@ const LoanApplicationsCard = () => {
                     handleApproveLoan(selectedLoan);
                     setDetailsOpen(false);
                   }}
+                  disabled={isProcessing || approveLoanMutation.isPending}
                 >
                   <Check className="h-3 w-3 mr-0.5" />
                   Approve

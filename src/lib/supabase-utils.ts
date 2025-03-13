@@ -30,7 +30,7 @@ export async function getLoanApplications() {
     .order('timestamp', { ascending: false });
   
   if (error) throw error;
-  return data;
+  return data || [];
 }
 
 export async function getApprovedLoans() {
@@ -40,7 +40,7 @@ export async function getApprovedLoans() {
     .order('timestamp', { ascending: false });
   
   if (error) throw error;
-  return data;
+  return data || [];
 }
 
 export async function getRejectedLoans() {
@@ -50,79 +50,111 @@ export async function getRejectedLoans() {
     .order('timestamp', { ascending: false });
   
   if (error) throw error;
-  return data;
+  return data || [];
 }
 
-// New functions for approving and rejecting loans
+// New functions for approving and rejecting loans with improved error handling
 export async function approveLoan(loanData: any) {
-  // Step 1: Insert the loan into approved_loans table
-  const { data: approvedLoan, error: approveError } = await supabase
-    .from('approved_loans')
-    .insert([{
-      name: loanData.name,
-      email: loanData.email,
-      phone: loanData.phone,
-      id_number: loanData.id_number,
-      gender: loanData.gender,
-      dob: loanData.dob,
-      address: loanData.address,
-      amount: loanData.amount,
-      bank: loanData.bank,
-      account_number: loanData.account_number,
-      purpose: loanData.purpose,
-      due_date: loanData.due_date,
-      status: true,
-      timestamp: new Date().toISOString()
-    }])
-    .select()
-    .single();
-  
-  if (approveError) throw approveError;
-  
-  // Step 2: Delete the loan from loan_applications table
-  const { error: deleteError } = await supabase
-    .from('loan_applications')
-    .delete()
-    .eq('id', loanData.id);
-  
-  if (deleteError) throw deleteError;
-  
-  return approvedLoan;
+  try {
+    console.log('Approving loan:', loanData);
+    
+    // Step 1: Insert the loan into approved_loans table
+    const { data: approvedLoan, error: approveError } = await supabase
+      .from('approved_loans')
+      .insert([{
+        name: loanData.name,
+        email: loanData.email,
+        phone: loanData.phone,
+        id_number: loanData.id_number,
+        gender: loanData.gender,
+        dob: loanData.dob,
+        address: loanData.address,
+        amount: loanData.amount,
+        bank: loanData.bank,
+        account_number: loanData.account_number,
+        purpose: loanData.purpose,
+        due_date: loanData.due_date,
+        status: true,
+        timestamp: new Date().toISOString()
+      }])
+      .select()
+      .single();
+    
+    if (approveError) {
+      console.error('Error inserting into approved_loans:', approveError);
+      throw approveError;
+    }
+    
+    console.log('Successfully inserted into approved_loans:', approvedLoan);
+    
+    // Step 2: Delete the loan from loan_applications table
+    const { error: deleteError } = await supabase
+      .from('loan_applications')
+      .delete()
+      .eq('id', loanData.id);
+    
+    if (deleteError) {
+      console.error('Error deleting from loan_applications:', deleteError);
+      throw deleteError;
+    }
+    
+    console.log('Successfully deleted from loan_applications');
+    return approvedLoan;
+  } catch (error) {
+    console.error('Error in approveLoan:', error);
+    throw error;
+  }
 }
 
 export async function rejectLoan(loanData: any) {
-  // Step 1: Insert the loan into rejected_loans table
-  const { data: rejectedLoan, error: rejectError } = await supabase
-    .from('rejected_loans')
-    .insert([{
-      name: loanData.name,
-      email: loanData.email,
-      phone: loanData.phone,
-      id_number: loanData.id_number,
-      gender: loanData.gender,
-      dob: loanData.dob,
-      address: loanData.address,
-      amount: loanData.amount,
-      bank: loanData.bank,
-      account_number: loanData.account_number,
-      purpose: loanData.purpose,
-      due_date: loanData.due_date,
-      timestamp: new Date().toISOString()
-    }])
-    .select()
-    .single();
-  
-  if (rejectError) throw rejectError;
-  
-  // Step 2: Delete the loan from loan_applications table
-  const { error: deleteError } = await supabase
-    .from('loan_applications')
-    .delete()
-    .eq('id', loanData.id);
-  
-  if (deleteError) throw deleteError;
-  
-  return rejectedLoan;
+  try {
+    console.log('Rejecting loan:', loanData);
+    
+    // Step 1: Insert the loan into rejected_loans table
+    const { data: rejectedLoan, error: rejectError } = await supabase
+      .from('rejected_loans')
+      .insert([{
+        name: loanData.name,
+        email: loanData.email,
+        phone: loanData.phone,
+        id_number: loanData.id_number,
+        gender: loanData.gender,
+        dob: loanData.dob,
+        address: loanData.address,
+        amount: loanData.amount,
+        bank: loanData.bank,
+        account_number: loanData.account_number,
+        purpose: loanData.purpose,
+        due_date: loanData.due_date,
+        timestamp: new Date().toISOString()
+      }])
+      .select()
+      .single();
+    
+    if (rejectError) {
+      console.error('Error inserting into rejected_loans:', rejectError);
+      throw rejectError;
+    }
+    
+    console.log('Successfully inserted into rejected_loans:', rejectedLoan);
+    
+    // Step 2: Delete the loan from loan_applications table
+    const { error: deleteError } = await supabase
+      .from('loan_applications')
+      .delete()
+      .eq('id', loanData.id);
+    
+    if (deleteError) {
+      console.error('Error deleting from loan_applications:', deleteError);
+      throw deleteError;
+    }
+    
+    console.log('Successfully deleted from loan_applications');
+    return rejectedLoan;
+  } catch (error) {
+    console.error('Error in rejectLoan:', error);
+    throw error;
+  }
 }
 
 // Investment functions
@@ -133,7 +165,7 @@ export async function getInvestments() {
     .order('timestamp', { ascending: false });
   
   if (error) throw error;
-  return data;
+  return data || [];
 }
 
 // Stokvela members functions
@@ -144,7 +176,7 @@ export async function getStokvelaMembers() {
     .order('user_number', { ascending: true });
   
   if (error) throw error;
-  return data;
+  return data || [];
 }
 
 // System settings functions
