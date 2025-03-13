@@ -78,7 +78,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   return (
     <header className="sticky top-0 z-30 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between px-4 sm:px-6">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
           <Button
             variant="ghost"
             size="icon"
@@ -89,9 +89,16 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             <span className="sr-only">Toggle Menu</span>
           </Button>
           
-          <h1 className="text-xl font-semibold tracking-tight">
-            {pageTitle}
-          </h1>
+          <div className="flex items-center gap-3">
+            <img 
+              src="/lovable-uploads/a2ba7d49-d862-44f2-ba79-09dfd459d0dd.png" 
+              alt="Green Finance Logo" 
+              className="h-8 w-auto"
+            />
+            <h1 className="text-xl font-semibold tracking-tight hidden sm:block">
+              {pageTitle}
+            </h1>
+          </div>
         </div>
         
         <div className="flex items-center gap-4">
