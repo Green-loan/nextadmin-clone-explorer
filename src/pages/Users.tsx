@@ -73,7 +73,7 @@ const Users = () => {
     id: user.id,
     name: user.full_names || 'N/A',
     email: user.email,
-    status: user.confirmed_email ? 'active' : 'inactive' as 'active' | 'inactive',
+    status: user.confirmed ? 'active' : 'inactive' as 'active' | 'inactive',
     role: mapRoleNumberToString(user.role),
     createdAt: user.created_at ? formatDate(user.created_at) : 'N/A',
     profilePicture: user.profile_picture,
@@ -81,7 +81,7 @@ const Users = () => {
     cellphone: user.cellphone || 'N/A',
     gender: user.gender || 'N/A',
     home_address: user.home_address || 'N/A',
-    confirmed_email: user.confirmed_email || false,
+    confirmed: user.confirmed || false,
     rawUser: user,
   }));
 
@@ -173,9 +173,9 @@ const Users = () => {
               </DropdownMenuItem>
               
               <DropdownMenuItem 
-                onClick={() => handleStatusChange(id, user.confirmed_email)}
+                onClick={() => handleStatusChange(id, user.confirmed)}
               >
-                {user.confirmed_email ? (
+                {user.confirmed ? (
                   <>
                     <UserX className="h-4 w-4 mr-2" />
                     Set as inactive

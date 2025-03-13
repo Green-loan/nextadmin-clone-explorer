@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -69,7 +70,7 @@ const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) => {
         full_names: user.full_names,
         email: user.email,
         gender: user.gender,
-        confirmed_email: user.active !== undefined ? user.active : (user.confirmed_email || false),
+        confirmed_email: user.confirmed || false, // Use the confirmed field from the database
         role: user.role,
         cellphone: user.cellphone || '',
         home_address: user.home_address || '',
