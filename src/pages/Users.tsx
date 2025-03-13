@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import Layout from '@/components/layout/Layout';
 import DataTable from '@/components/ui/DataTable';
@@ -31,6 +30,7 @@ import { formatDate } from '@/lib/utils';
 import UserDetailsModal from '@/components/users/UserDetailsModal';
 import EditUserModal from '@/components/users/EditUserModal';
 import DeleteUserDialog from '@/components/users/DeleteUserDialog';
+import AddUserModal from '@/components/users/AddUserModal';
 
 const Users = () => {
   const { data: users = [], isLoading, error } = useUsers();
@@ -42,6 +42,7 @@ const Users = () => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   // Action handlers
   const handleViewDetails = (id: string) => {
@@ -97,14 +98,13 @@ const Users = () => {
               {user?.profilePicture ? (
                 <AvatarImage src={user.profilePicture} alt={value} />
               ) : (
-                <AvatarImage src="/placeholder.svg" alt={value} />
+                <AvatarFallback>
+                  {value && typeof value === 'string'
+                    ? value.split(' ').map(n => n[0]).join('').toUpperCase()
+                    : <UserIcon className="h-4 w-4" />
+                  }
+                </AvatarFallback>
               )}
-              <AvatarFallback>
-                {value && typeof value === 'string'
-                  ? value.split(' ').map(n => n[0]).join('').toUpperCase()
-                  : <UserIcon className="h-4 w-4" />
-                }
-              </AvatarFallback>
             </Avatar>
             <div>
               <div className="font-medium">{value}</div>
@@ -205,8 +205,7 @@ const Users = () => {
   ];
 
   const handleCreateUser = () => {
-    // This would typically open a modal or navigate to a creation form
-    console.log('Create new user');
+    setIsAddModalOpen(true);
   };
 
   if (error) {
@@ -266,6 +265,12 @@ const Users = () => {
         userName={selectedUserName}
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
+      />
+
+      {/* Add User Modal */}
+      <AddUserModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
       />
     </Layout>
   );

@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Bell, Search, Menu, User } from 'lucide-react';
+import { Bell, Search, Menu, User, Settings, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -13,6 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { supabase } from '@/lib/supabase';
 
 type HeaderProps = {
   toggleSidebar: () => void;
@@ -31,10 +32,45 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   const location = useLocation();
   const [pageTitle, setPageTitle] = useState('');
   const [mounted, setMounted] = useState(false);
+  const [profileUrl, setProfileUrl] = useState<string | null>(null);
+  const [userInitials, setUserInitials] = useState('JD');
   
   useEffect(() => {
     setMounted(true);
     setPageTitle(getPageTitle(location.pathname));
+    
+    // Get current user
+    const getCurrentUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session?.user?.id) {
+        // Fetch user details
+        const { data } = await supabase
+          .from('users_account')
+          .select('full_names, profile_picture')
+          .eq('id', session.user.id)
+          .single();
+        
+        if (data) {
+          if (data.profile_picture) {
+            setProfileUrl(data.profile_picture);
+          }
+          
+          if (data.full_names) {
+            const initials = data.full_names
+              .split(' ')
+              .map(name => name[0])
+              .join('')
+              .toUpperCase()
+              .substring(0, 2);
+            
+            setUserInitials(initials);
+          }
+        }
+      }
+    };
+    
+    getCurrentUser();
   }, [location.pathname]);
 
   if (!mounted) return null;
@@ -82,8 +118,11 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src="/placeholder.svg" alt="User" />
-                  <AvatarFallback>JD</AvatarFallback>
+                  {profileUrl ? (
+                    <AvatarImage src={profileUrl} alt="User" />
+                  ) : (
+                    <AvatarFallback>{userInitials}</AvatarFallback>
+                  )}
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
@@ -109,8 +148,6 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
       </div>
     </header>
   );
-};
+}
 
 export default Header;
-
-import { Settings, LogOut } from 'lucide-react';

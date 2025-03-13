@@ -4,6 +4,8 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useUserDetails, useUpdateUser } from '@/hooks/use-user-actions';
+import { supabase } from '@/lib/supabase';
+import { toast } from '@/hooks/use-toast';
 import { 
   Dialog, 
   DialogContent, 
@@ -25,6 +27,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 const userFormSchema = z.object({
   full_names: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
@@ -34,6 +37,7 @@ const userFormSchema = z.object({
   cellphone: z.string().optional(),
   home_address: z.string().optional(),
   date_of_birth: z.string().optional(),
+  profile_picture: z.string().optional(),
 });
 
 type UserFormValues = z.infer<typeof userFormSchema>;
@@ -58,6 +62,7 @@ const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) => {
       cellphone: '',
       home_address: '',
       date_of_birth: '',
+      profile_picture: '',
     },
   });
 
@@ -71,9 +76,44 @@ const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) => {
         cellphone: user.cellphone || '',
         home_address: user.home_address || '',
         date_of_birth: user.date_of_birth || '',
+        profile_picture: user.profile_picture || '',
       });
     }
   }, [user, form]);
+
+  const handlePictureUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+    const filePath = `profile-pictures/${fileName}`;
+
+    try {
+      const { error: uploadError, data } = await supabase.storage
+        .from('users')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('users')
+        .getPublicUrl(filePath);
+
+      form.setValue('profile_picture', publicUrl);
+      
+      toast({
+        title: 'Image uploaded',
+        description: 'Profile picture has been uploaded successfully.'
+      });
+    } catch (error) {
+      toast({
+        variant: 'destructive',
+        title: 'Upload failed',
+        description: error instanceof Error ? error.message : 'Failed to upload profile picture',
+      });
+    }
+  };
 
   const onSubmit = async (data: UserFormValues) => {
     if (userId) {
@@ -102,6 +142,40 @@ const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) => {
         ) : (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
+              <FormField
+                control={form.control}
+                name="profile_picture"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Profile Picture</FormLabel>
+                    <FormControl>
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-4">
+                          <Avatar className="h-16 w-16">
+                            {field.value ? (
+                              <AvatarImage src={field.value} alt="Profile" />
+                            ) : (
+                              <AvatarFallback>
+                                {form.getValues().full_names
+                                  ? form.getValues().full_names.split(' ').map(n => n[0]).join('').toUpperCase()
+                                  : 'U'}
+                              </AvatarFallback>
+                            )}
+                          </Avatar>
+                          <Input 
+                            type="file" 
+                            accept="image/*"
+                            onChange={handlePictureUpload}
+                            className="flex-1"
+                          />
+                        </div>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name="full_names"
