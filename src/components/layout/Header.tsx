@@ -93,7 +93,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             <img 
               src="/lovable-uploads/a2ba7d49-d862-44f2-ba79-09dfd459d0dd.png" 
               alt="Green Finance Logo" 
-              className="h-[190px] w-[190px] object-contain" 
+              className="h-[95px] w-[95px] object-contain" 
             />
             <h1 className="text-xl font-semibold tracking-tight hidden sm:block">
               {pageTitle}
