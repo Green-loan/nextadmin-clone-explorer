@@ -141,9 +141,9 @@ const LoanApplicationsCard = () => {
                 </div>
                 <div className="flex flex-col items-end">
                   <p className="text-sm font-medium text-green-600 dark:text-green-400">
-                    ${parseFloat(loan.amount).toFixed(2)} 
+                    ${loan.amount.toFixed(2)} 
                     <span className="text-xs text-muted-foreground ml-1">
-                      → ${calculateReturningAmount(parseFloat(loan.amount))}
+                      → ${calculateReturningAmount(loan.amount)}
                     </span>
                   </p>
                   <div className="flex space-x-2 mt-1">
