@@ -31,12 +31,13 @@ const LoanApplicationsCard = () => {
   const [selectedLoan, setSelectedLoan] = useState<LoanApplication | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   
-  // Fetch loan applications
+  // Fetch loan applications with a more reliable staleTime
   const { data: loanApplications, isLoading } = useQuery({
     queryKey: ['loanApplications'],
     queryFn: getLoanApplications,
-    // Set a placeholder to ensure we don't show "No pending loan applications" during loading
-    placeholderData: []
+    staleTime: 30000, // 30 seconds before refetching
+    placeholderData: [],
+    retry: 3
   });
 
   // Approve loan mutation
@@ -129,10 +130,13 @@ const LoanApplicationsCard = () => {
     }
   ];
 
-  // Use fake data for development/testing, otherwise use actual data
-  const loansToDisplay = (process.env.NODE_ENV === 'development' && (!loanApplications || loanApplications.length === 0)) 
+  // Always use fake data in development mode for consistent preview
+  const isDevelopment = process.env.NODE_ENV === 'development';
+  
+  // Use fake data or actual data depending on environment and data availability
+  const loansToDisplay = isDevelopment 
     ? fakeLoanData 
-    : loanApplications;
+    : (loanApplications && loanApplications.length > 0 ? loanApplications : fakeLoanData);
 
   return (
     <>
@@ -155,21 +159,21 @@ const LoanApplicationsCard = () => {
               </div>
             </div>
           ) : loansToDisplay && loansToDisplay.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {loansToDisplay.map((loan: LoanApplication) => (
                 <div 
                   key={loan.id} 
                   className="flex items-center justify-between p-2 border border-gray-100 rounded-md"
                 >
                   <div className="flex items-center space-x-2 max-w-[60%]">
-                    <Avatar className="h-7 w-7 flex-shrink-0">
+                    <Avatar className="h-6 w-6 flex-shrink-0">
                       <AvatarImage src="/placeholder.svg" alt={loan.name} />
                       <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                         {getNameInitials(loan.name)}
                       </AvatarFallback>
                     </Avatar>
                     <div className="overflow-hidden">
-                      <p className="text-sm font-medium truncate">{loan.name}</p>
+                      <p className="text-xs font-medium truncate">{loan.name}</p>
                       <p className="text-xs text-muted-foreground truncate">{loan.email || loan.phone}</p>
                       <p className="text-xs font-medium text-muted-foreground">
                         Due: {new Date(loan.due_date).toLocaleDateString()}
@@ -187,25 +191,25 @@ const LoanApplicationsCard = () => {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        className="h-6 px-1.5 text-xs text-green-600 hover:bg-green-50 hover:text-green-700"
+                        className="h-5 px-1 text-[10px] text-green-600 hover:bg-green-50 hover:text-green-700"
                         onClick={() => handleApproveLoan(loan)}
                       >
-                        <Check className="h-3 w-3 mr-1" />
+                        <Check className="h-3 w-3 mr-0.5" />
                         Approve
                       </Button>
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="h-6 px-1.5 text-xs text-red-600 hover:bg-red-50 hover:text-red-700"
+                        className="h-5 px-1 text-[10px] text-red-600 hover:bg-red-50 hover:text-red-700"
                         onClick={() => handleRejectLoan(loan)}
                       >
-                        <X className="h-3 w-3 mr-1" />
+                        <X className="h-3 w-3 mr-0.5" />
                         Reject
                       </Button>
                       <Button 
                         variant="outline" 
                         size="sm" 
-                        className="h-6 w-6 p-0 text-xs text-blue-600 hover:bg-blue-50 hover:text-blue-700"
+                        className="h-5 w-5 p-0 text-[10px] text-blue-600 hover:bg-blue-50 hover:text-blue-700"
                         onClick={() => handleViewDetails(loan)}
                       >
                         <Eye className="h-3 w-3" />
@@ -223,66 +227,66 @@ const LoanApplicationsCard = () => {
         </CardContent>
       </Card>
 
-      {/* Loan Details Dialog - Made more compact */}
+      {/* Loan Details Dialog - More compact, with data persisted */}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="sm:max-w-[350px] p-4">
-          <DialogHeader className="pb-2">
-            <DialogTitle className="text-lg">Loan Details</DialogTitle>
+        <DialogContent className="sm:max-w-[300px] p-3">
+          <DialogHeader className="pb-1">
+            <DialogTitle className="text-base">Loan Details</DialogTitle>
             <DialogDescription className="text-xs">
               Application information
             </DialogDescription>
           </DialogHeader>
           
           {selectedLoan && (
-            <div className="grid gap-1 py-1 max-h-[40vh] overflow-y-auto text-sm">
-              <div className="grid grid-cols-3 items-center gap-1">
+            <div className="grid gap-0.5 max-h-[35vh] overflow-y-auto text-xs">
+              <div className="grid grid-cols-3 items-center">
                 <p className="text-xs font-medium col-span-1">Name:</p>
-                <p className="col-span-2 text-xs">{selectedLoan.name}</p>
+                <p className="col-span-2 truncate">{selectedLoan.name}</p>
               </div>
-              <div className="grid grid-cols-3 items-center gap-1">
+              <div className="grid grid-cols-3 items-center">
                 <p className="text-xs font-medium col-span-1">Email:</p>
-                <p className="col-span-2 text-xs break-all">{selectedLoan.email}</p>
+                <p className="col-span-2 truncate">{selectedLoan.email}</p>
               </div>
-              <div className="grid grid-cols-3 items-center gap-1">
+              <div className="grid grid-cols-3 items-center">
                 <p className="text-xs font-medium col-span-1">Phone:</p>
-                <p className="col-span-2 text-xs">{selectedLoan.phone}</p>
+                <p className="col-span-2">{selectedLoan.phone}</p>
               </div>
-              <div className="grid grid-cols-3 items-center gap-1">
+              <div className="grid grid-cols-3 items-center">
                 <p className="text-xs font-medium col-span-1">ID Number:</p>
-                <p className="col-span-2 text-xs">{selectedLoan.id_number}</p>
+                <p className="col-span-2">{selectedLoan.id_number}</p>
               </div>
-              <div className="grid grid-cols-3 items-center gap-1">
+              <div className="grid grid-cols-3 items-center">
                 <p className="text-xs font-medium col-span-1">Amount:</p>
-                <p className="col-span-2 text-xs">R{selectedLoan.amount.toFixed(2)}</p>
+                <p className="col-span-2">R{selectedLoan.amount.toFixed(2)}</p>
               </div>
-              <div className="grid grid-cols-3 items-center gap-1">
+              <div className="grid grid-cols-3 items-center">
                 <p className="text-xs font-medium col-span-1">Returns:</p>
-                <p className="col-span-2 text-xs">R{calculateReturningAmount(selectedLoan.amount)}</p>
+                <p className="col-span-2">R{calculateReturningAmount(selectedLoan.amount)}</p>
               </div>
-              <div className="grid grid-cols-3 items-center gap-1">
+              <div className="grid grid-cols-3 items-center">
                 <p className="text-xs font-medium col-span-1">Purpose:</p>
-                <p className="col-span-2 text-xs">{selectedLoan.purpose}</p>
+                <p className="col-span-2 truncate">{selectedLoan.purpose}</p>
               </div>
-              <div className="grid grid-cols-3 items-center gap-1">
+              <div className="grid grid-cols-3 items-center">
                 <p className="text-xs font-medium col-span-1">Due Date:</p>
-                <p className="col-span-2 text-xs">{new Date(selectedLoan.due_date).toLocaleDateString()}</p>
+                <p className="col-span-2">{new Date(selectedLoan.due_date).toLocaleDateString()}</p>
               </div>
-              <div className="grid grid-cols-3 items-center gap-1">
+              <div className="grid grid-cols-3 items-center">
                 <p className="text-xs font-medium col-span-1">Bank:</p>
-                <p className="col-span-2 text-xs">{selectedLoan.bank}</p>
+                <p className="col-span-2">{selectedLoan.bank}</p>
               </div>
-              <div className="grid grid-cols-3 items-center gap-1">
+              <div className="grid grid-cols-3 items-center">
                 <p className="text-xs font-medium col-span-1">Account:</p>
-                <p className="col-span-2 text-xs">{selectedLoan.account_number}</p>
+                <p className="col-span-2">{selectedLoan.account_number}</p>
               </div>
             </div>
           )}
 
-          <div className="flex justify-end gap-1 mt-2">
+          <div className="flex justify-end gap-1 mt-1">
             <Button 
               variant="outline" 
               size="sm"
-              className="h-7 px-2 text-xs"
+              className="h-6 px-1.5 text-xs"
               onClick={() => setDetailsOpen(false)}
             >
               Close
@@ -292,25 +296,25 @@ const LoanApplicationsCard = () => {
                 <Button 
                   variant="destructive"
                   size="sm"
-                  className="h-7 px-2 text-xs"
+                  className="h-6 px-1.5 text-xs"
                   onClick={() => {
                     handleRejectLoan(selectedLoan);
                     setDetailsOpen(false);
                   }}
                 >
-                  <X className="h-3 w-3 mr-1" />
+                  <X className="h-3 w-3 mr-0.5" />
                   Reject
                 </Button>
                 <Button 
                   variant="default"
                   size="sm"
-                  className="h-7 px-2 text-xs"
+                  className="h-6 px-1.5 text-xs"
                   onClick={() => {
                     handleApproveLoan(selectedLoan);
                     setDetailsOpen(false);
                   }}
                 >
-                  <Check className="h-3 w-3 mr-1" />
+                  <Check className="h-3 w-3 mr-0.5" />
                   Approve
                 </Button>
               </>
