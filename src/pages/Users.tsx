@@ -13,13 +13,60 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, CheckCircle2, AlertCircle, User as UserIcon } from 'lucide-react';
+import { 
+  MoreHorizontal, 
+  CheckCircle2, 
+  AlertCircle, 
+  User as UserIcon, 
+  Eye, 
+  Pencil, 
+  Trash,
+  UserCheck,
+  UserX
+} from 'lucide-react';
 import { useUsers } from '@/hooks/use-users';
+import { useUpdateUserStatus } from '@/hooks/use-user-actions';
 import { SupabaseUser, mapRoleNumberToString } from '@/types/user';
 import { formatDate } from '@/lib/utils';
+import UserDetailsModal from '@/components/users/UserDetailsModal';
+import EditUserModal from '@/components/users/EditUserModal';
+import DeleteUserDialog from '@/components/users/DeleteUserDialog';
 
 const Users = () => {
   const { data: users = [], isLoading, error } = useUsers();
+  const updateUserStatus = useUpdateUserStatus();
+  
+  // Modal state
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [selectedUserName, setSelectedUserName] = useState('');
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
+  // Action handlers
+  const handleViewDetails = (id: string) => {
+    setSelectedUserId(id);
+    setIsViewModalOpen(true);
+  };
+
+  const handleEditUser = (id: string, name: string) => {
+    setSelectedUserId(id);
+    setSelectedUserName(name);
+    setIsEditModalOpen(true);
+  };
+
+  const handleDeleteUser = (id: string, name: string) => {
+    setSelectedUserId(id);
+    setSelectedUserName(name);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleStatusChange = async (id: string, currentStatus: boolean) => {
+    await updateUserStatus.mutateAsync({
+      userId: id,
+      isActive: !currentStatus
+    });
+  };
   
   // Format data for the DataTable
   const formattedUsers = users.map(user => ({
@@ -34,6 +81,8 @@ const Users = () => {
     cellphone: user.cellphone || 'N/A',
     gender: user.gender || 'N/A',
     home_address: user.home_address || 'N/A',
+    confirmed_email: user.confirmed_email || false,
+    rawUser: user,
   }));
 
   const columns = [
@@ -98,6 +147,9 @@ const Users = () => {
       accessorKey: 'id' as const,
       header: 'Actions',
       cell: (id: string) => {
+        const user = formattedUsers.find(u => u.id === id);
+        if (!user) return null;
+        
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -109,10 +161,42 @@ const Users = () => {
             <DropdownMenuContent align="end" className="animate-scale-in">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => console.log('View user details', id)}>View details</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => console.log('Edit user', id)}>Edit user</DropdownMenuItem>
+              
+              <DropdownMenuItem onClick={() => handleViewDetails(id)}>
+                <Eye className="h-4 w-4 mr-2" />
+                View details
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem onClick={() => handleEditUser(id, user.name)}>
+                <Pencil className="h-4 w-4 mr-2" />
+                Edit user
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem 
+                onClick={() => handleStatusChange(id, user.confirmed_email)}
+              >
+                {user.confirmed_email ? (
+                  <>
+                    <UserX className="h-4 w-4 mr-2" />
+                    Set as inactive
+                  </>
+                ) : (
+                  <>
+                    <UserCheck className="h-4 w-4 mr-2" />
+                    Set as active
+                  </>
+                )}
+              </DropdownMenuItem>
+              
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive" onClick={() => console.log('Delete user', id)}>Delete user</DropdownMenuItem>
+              
+              <DropdownMenuItem 
+                className="text-destructive focus:text-destructive" 
+                onClick={() => handleDeleteUser(id, user.name)}
+              >
+                <Trash className="h-4 w-4 mr-2" />
+                Delete user
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -158,9 +242,31 @@ const Users = () => {
             label: 'Add User',
             onClick: handleCreateUser,
           }}
-          isLoading={isLoading}
+          isLoading={isLoading || updateUserStatus.isPending}
         />
       </div>
+
+      {/* User Details Modal */}
+      <UserDetailsModal 
+        userId={selectedUserId}
+        isOpen={isViewModalOpen}
+        onClose={() => setIsViewModalOpen(false)}
+      />
+
+      {/* Edit User Modal */}
+      <EditUserModal
+        userId={selectedUserId}
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+      />
+
+      {/* Delete User Confirmation */}
+      <DeleteUserDialog
+        userId={selectedUserId}
+        userName={selectedUserName}
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+      />
     </Layout>
   );
 };
