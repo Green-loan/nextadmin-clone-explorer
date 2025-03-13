@@ -28,6 +28,13 @@ const Dashboard = () => {
   return (
     <Layout>
       <div className="grid gap-6">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground">
+            Welcome to your dashboard overview.
+          </p>
+        </div>
+        
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <StatCard

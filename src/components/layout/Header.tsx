@@ -19,25 +19,13 @@ type HeaderProps = {
   toggleSidebar: () => void;
 };
 
-const getPageTitle = (pathname: string): string => {
-  if (pathname === '/') return 'Dashboard';
-  if (pathname === '/users') return 'Users';
-  if (pathname === '/analytics') return 'Analytics';
-  if (pathname === '/reports') return 'Reports';
-  if (pathname === '/settings') return 'Settings';
-  return pathname.charAt(1).toUpperCase() + pathname.slice(2);
-};
-
 const Header = ({ toggleSidebar }: HeaderProps) => {
-  const location = useLocation();
-  const [pageTitle, setPageTitle] = useState('');
   const [mounted, setMounted] = useState(false);
   const [profileUrl, setProfileUrl] = useState<string | null>(null);
   const [userInitials, setUserInitials] = useState('JD');
   
   useEffect(() => {
     setMounted(true);
-    setPageTitle(getPageTitle(location.pathname));
     
     // Get current user
     const getCurrentUser = async () => {
@@ -71,7 +59,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
     };
     
     getCurrentUser();
-  }, [location.pathname]);
+  }, []);
 
   if (!mounted) return null;
 
@@ -95,9 +83,6 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
               alt="Green Finance Logo" 
               className="h-[95px] w-[95px] object-contain" 
             />
-            <h1 className="text-xl font-semibold tracking-tight hidden sm:block">
-              {pageTitle}
-            </h1>
           </div>
         </div>
         
