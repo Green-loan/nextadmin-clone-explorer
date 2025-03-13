@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Layout from '@/components/layout/Layout';
 import DataTable from '@/components/ui/DataTable';
 import { Badge } from '@/components/ui/badge';
@@ -13,156 +13,64 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, CheckCircle2, AlertCircle } from 'lucide-react';
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  status: 'active' | 'inactive';
-  role: string;
-  createdAt: string;
-}
+import { MoreHorizontal, CheckCircle2, AlertCircle, User as UserIcon } from 'lucide-react';
+import { useUsers } from '@/hooks/use-users';
+import { SupabaseUser, mapRoleNumberToString } from '@/types/user';
+import { formatDate } from '@/lib/utils';
 
 const Users = () => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    // Simulate data loading
-    const loadData = setTimeout(() => {
-      setUsers([
-        {
-          id: '1',
-          name: 'John Doe',
-          email: 'john.doe@example.com',
-          status: 'active',
-          role: 'Admin',
-          createdAt: '2023-01-15',
-        },
-        {
-          id: '2',
-          name: 'Jane Smith',
-          email: 'jane.smith@example.com',
-          status: 'active',
-          role: 'Editor',
-          createdAt: '2023-01-20',
-        },
-        {
-          id: '3',
-          name: 'Robert Johnson',
-          email: 'robert.johnson@example.com',
-          status: 'inactive',
-          role: 'User',
-          createdAt: '2023-02-05',
-        },
-        {
-          id: '4',
-          name: 'Emily Brown',
-          email: 'emily.brown@example.com',
-          status: 'active',
-          role: 'Editor',
-          createdAt: '2023-02-10',
-        },
-        {
-          id: '5',
-          name: 'Michael Wilson',
-          email: 'michael.wilson@example.com',
-          status: 'active',
-          role: 'User',
-          createdAt: '2023-02-15',
-        },
-        {
-          id: '6',
-          name: 'Sarah Davis',
-          email: 'sarah.davis@example.com',
-          status: 'inactive',
-          role: 'User',
-          createdAt: '2023-02-25',
-        },
-        {
-          id: '7',
-          name: 'David Martinez',
-          email: 'david.martinez@example.com',
-          status: 'active',
-          role: 'Admin',
-          createdAt: '2023-03-05',
-        },
-        {
-          id: '8',
-          name: 'Jessica Lee',
-          email: 'jessica.lee@example.com',
-          status: 'active',
-          role: 'Editor',
-          createdAt: '2023-03-10',
-        },
-        {
-          id: '9',
-          name: 'Thomas Anderson',
-          email: 'thomas.anderson@example.com',
-          status: 'inactive',
-          role: 'User',
-          createdAt: '2023-03-20',
-        },
-        {
-          id: '10',
-          name: 'Lisa Taylor',
-          email: 'lisa.taylor@example.com',
-          status: 'active',
-          role: 'User',
-          createdAt: '2023-03-25',
-        },
-        {
-          id: '11',
-          name: 'Daniel White',
-          email: 'daniel.white@example.com',
-          status: 'active',
-          role: 'Editor',
-          createdAt: '2023-04-01',
-        },
-        {
-          id: '12',
-          name: 'Karen Harris',
-          email: 'karen.harris@example.com',
-          status: 'inactive',
-          role: 'User',
-          createdAt: '2023-04-05',
-        },
-      ]);
-      setIsLoading(false);
-    }, 1200);
-
-    return () => clearTimeout(loadData);
-  }, []);
+  const { data: users = [], isLoading, error } = useUsers();
+  
+  // Format data for the DataTable
+  const formattedUsers = users.map(user => ({
+    id: user.id,
+    name: user.full_names || 'N/A',
+    email: user.email,
+    status: user.confirmed_email ? 'active' : 'inactive' as 'active' | 'inactive',
+    role: mapRoleNumberToString(user.role),
+    createdAt: user.created_at ? formatDate(user.created_at) : 'N/A',
+    profilePicture: user.profile_picture,
+    user_number: user.user_number || 'N/A',
+    cellphone: user.cellphone || 'N/A',
+    gender: user.gender || 'N/A',
+    home_address: user.home_address || 'N/A',
+  }));
 
   const columns = [
     {
-      accessorKey: 'name' as keyof User,
+      accessorKey: 'name' as const,
       header: 'Name',
       cell: (value: string) => {
-        const user = users.find(u => u.name === value) || { email: '' };
+        const user = formattedUsers.find(u => u.name === value);
         return (
           <div className="flex items-center gap-3">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={`/placeholder.svg`} alt={value} />
+              {user?.profilePicture ? (
+                <AvatarImage src={user.profilePicture} alt={value} />
+              ) : (
+                <AvatarImage src="/placeholder.svg" alt={value} />
+              )}
               <AvatarFallback>
-                {value.split(' ').map(n => n[0]).join('')}
+                {value && typeof value === 'string'
+                  ? value.split(' ').map(n => n[0]).join('').toUpperCase()
+                  : <UserIcon className="h-4 w-4" />
+                }
               </AvatarFallback>
             </Avatar>
             <div>
               <div className="font-medium">{value}</div>
-              <div className="text-sm text-muted-foreground">{user.email}</div>
+              <div className="text-sm text-muted-foreground">{user?.email}</div>
             </div>
           </div>
         );
       },
     },
     {
-      accessorKey: 'role' as keyof User,
+      accessorKey: 'role' as const,
       header: 'Role',
     },
     {
-      accessorKey: 'status' as keyof User,
+      accessorKey: 'status' as const,
       header: 'Status',
       cell: (value: 'active' | 'inactive') => {
         return value === 'active' ? (
@@ -179,11 +87,15 @@ const Users = () => {
       },
     },
     {
-      accessorKey: 'createdAt' as keyof User,
+      accessorKey: 'user_number' as const,
+      header: 'User ID',
+    },
+    {
+      accessorKey: 'createdAt' as const,
       header: 'Created At',
     },
     {
-      accessorKey: 'id' as keyof User,
+      accessorKey: 'id' as const,
       header: 'Actions',
       cell: (id: string) => {
         return (
@@ -197,10 +109,10 @@ const Users = () => {
             <DropdownMenuContent align="end" className="animate-scale-in">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>View details</DropdownMenuItem>
-              <DropdownMenuItem>Edit user</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => console.log('View user details', id)}>View details</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => console.log('Edit user', id)}>Edit user</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-destructive">Delete user</DropdownMenuItem>
+              <DropdownMenuItem className="text-destructive" onClick={() => console.log('Delete user', id)}>Delete user</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -213,6 +125,21 @@ const Users = () => {
     console.log('Create new user');
   };
 
+  if (error) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-destructive">Error loading users</h2>
+            <p className="text-muted-foreground mt-2">
+              {error instanceof Error ? error.message : 'An unknown error occurred'}
+            </p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -224,7 +151,7 @@ const Users = () => {
         </div>
         
         <DataTable
-          data={users}
+          data={formattedUsers}
           columns={columns}
           searchable={true}
           createNew={{
