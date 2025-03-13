@@ -92,7 +92,7 @@ const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Edit User</DialogTitle>
           <DialogDescription>
@@ -101,12 +101,12 @@ const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) => {
         </DialogHeader>
 
         {isLoading ? (
-          <div className="flex justify-center py-8">
-            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+          <div className="flex justify-center py-6">
+            <div className="animate-spin h-6 w-6 border-4 border-primary border-t-transparent rounded-full" />
           </div>
         ) : (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
               <FormField
                 control={form.control}
                 name="full_names"
@@ -135,7 +135,7 @@ const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) => {
                 )}
               />
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <FormField
                   control={form.control}
                   name="gender"
@@ -198,14 +198,14 @@ const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) => {
                   <FormItem>
                     <FormLabel>Home Address</FormLabel>
                     <FormControl>
-                      <Textarea placeholder="Address" {...field} />
+                      <Textarea placeholder="Address" className="resize-none h-20" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-3">
                 <FormField
                   control={form.control}
                   name="role"
@@ -236,12 +236,9 @@ const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) => {
                   control={form.control}
                   name="confirmed_email"
                   render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 mt-6">
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-2 mt-6">
                       <div className="space-y-0.5">
-                        <FormLabel>Active Status</FormLabel>
-                        <FormDescription>
-                          User account status
-                        </FormDescription>
+                        <FormLabel className="text-sm">Active Status</FormLabel>
                       </div>
                       <FormControl>
                         <Switch
@@ -254,11 +251,11 @@ const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) => {
                 />
               </div>
 
-              <DialogFooter className="mt-6">
-                <Button type="button" variant="outline" onClick={onClose}>
+              <DialogFooter className="pt-3">
+                <Button type="button" variant="outline" onClick={onClose} size="sm">
                   Cancel
                 </Button>
-                <Button type="submit" disabled={updateUser.isPending}>
+                <Button type="submit" disabled={updateUser.isPending} size="sm">
                   {updateUser.isPending ? "Saving..." : "Save Changes"}
                 </Button>
               </DialogFooter>
