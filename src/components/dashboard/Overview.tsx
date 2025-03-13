@@ -25,7 +25,7 @@ const Overview = ({ chartData = [] }: OverviewProps) => {
     <Card className="col-span-4 hover-scale">
       <CardHeader className="pb-2">
         <CardTitle>Revenue Overview</CardTitle>
-        <CardDescription>Monthly revenue (in Rands) for current year</CardDescription>
+        <CardDescription>Monthly revenue (in Rands) from loan returns</CardDescription>
       </CardHeader>
       <CardContent className="pt-2">
         <div className="h-[300px] w-full">

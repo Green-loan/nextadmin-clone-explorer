@@ -14,7 +14,7 @@ import {
   Activity
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { getTotalLoanRevenue, getMonthlyLoanStats, getMonthlyRevenueData } from '@/lib/supabase-utils';
+import { getTotalLoanRevenue, getMonthlyLoanStats, getMonthlyRevenueData, getCustomersCount } from '@/lib/supabase-utils';
 
 const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -39,6 +39,14 @@ const Dashboard = () => {
   const { data: chartData } = useQuery({
     queryKey: ['monthlyRevenueData'],
     queryFn: getMonthlyRevenueData,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+
+  // Fetch customers count
+  const { data: customersCount } = useQuery({
+    queryKey: ['customersCount'],
+    queryFn: getCustomersCount,
     staleTime: 1000 * 60 * 5, // 5 minutes
     refetchOnWindowFocus: false,
   });
@@ -71,11 +79,11 @@ const Dashboard = () => {
             className={isLoading ? "animate-pulse" : ""}
           />
           <StatCard
-            title="New Customers"
-            value="0"
+            title="Customers/Clients"
+            value={isLoading ? 'Loading...' : `${customersCount || '0'}`}
             description="vs. previous month"
             icon={Users}
-            trend={0}
+            trend={monthlyStats?.customersChange ? parseFloat(monthlyStats.customersChange) : 0}
             className={isLoading ? "animate-pulse" : ""}
           />
           <StatCard

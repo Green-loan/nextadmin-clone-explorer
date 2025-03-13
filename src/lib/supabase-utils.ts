@@ -57,21 +57,35 @@ export async function getTotalLoanRevenue() {
   try {
     const { data, error } = await supabase
       .from('approved_loans')
-      .select('amount');
+      .select('amount, totalReturn');
     
     if (error) throw error;
     
-    // Calculate total revenue (assuming 10% interest rate)
-    const interestRate = 0.1; // 10% interest
+    // Calculate total revenue from totalReturn column
+    const totalRevenue = data?.reduce((sum, loan) => sum + parseFloat(loan.totalReturn || 0), 0) || 0;
     const totalAmount = data?.reduce((sum, loan) => sum + parseFloat(loan.amount || 0), 0) || 0;
-    const revenue = totalAmount * interestRate;
     
     return {
-      totalRevenue: revenue.toFixed(2),
+      totalRevenue: totalRevenue.toFixed(2),
       totalAmount: totalAmount.toFixed(2)
     };
   } catch (error) {
     console.error('Error calculating total loan revenue:', error);
+    throw error;
+  }
+}
+
+export async function getCustomersCount() {
+  try {
+    const { count, error } = await supabase
+      .from('approved_loans')
+      .select('*', { count: 'exact', head: true });
+    
+    if (error) throw error;
+    
+    return count || 0;
+  } catch (error) {
+    console.error('Error getting customers count:', error);
     throw error;
   }
 }
@@ -89,7 +103,7 @@ export async function getMonthlyLoanStats() {
     // Get current month's data
     const { data: currentMonthData, error: currentError } = await supabase
       .from('approved_loans')
-      .select('amount, timestamp')
+      .select('amount, totalReturn, timestamp')
       .gte('timestamp', new Date(currentYear, currentMonth, 1).toISOString())
       .lt('timestamp', new Date(currentYear, currentMonth + 1, 1).toISOString());
     
@@ -98,22 +112,38 @@ export async function getMonthlyLoanStats() {
     // Get previous month's data
     const { data: prevMonthData, error: prevError } = await supabase
       .from('approved_loans')
-      .select('amount, timestamp')
+      .select('amount, totalReturn, timestamp')
       .gte('timestamp', new Date(prevMonthYear, prevMonth, 1).toISOString())
       .lt('timestamp', new Date(prevMonthYear, prevMonth + 1, 1).toISOString());
     
     if (prevError) throw prevError;
     
-    // Calculate totals (assuming 10% interest rate)
-    const interestRate = 0.1; // 10% interest
+    // Get current month's customers count
+    const { count: currentMonthCustomers, error: currentCustomersError } = await supabase
+      .from('approved_loans')
+      .select('*', { count: 'exact', head: true })
+      .gte('timestamp', new Date(currentYear, currentMonth, 1).toISOString())
+      .lt('timestamp', new Date(currentYear, currentMonth + 1, 1).toISOString());
+    
+    if (currentCustomersError) throw currentCustomersError;
+    
+    // Get previous month's customers count
+    const { count: prevMonthCustomers, error: prevCustomersError } = await supabase
+      .from('approved_loans')
+      .select('*', { count: 'exact', head: true })
+      .gte('timestamp', new Date(prevMonthYear, prevMonth, 1).toISOString())
+      .lt('timestamp', new Date(prevMonthYear, prevMonth + 1, 1).toISOString());
+    
+    if (prevCustomersError) throw prevCustomersError;
+    
+    // Calculate totals from totalReturn column
+    const currentMonthRevenue = currentMonthData?.reduce((sum, loan) => sum + parseFloat(loan.totalReturn || 0), 0) || 0;
+    const prevMonthRevenue = prevMonthData?.reduce((sum, loan) => sum + parseFloat(loan.totalReturn || 0), 0) || 0;
     
     const currentMonthAmount = currentMonthData?.reduce((sum, loan) => sum + parseFloat(loan.amount || 0), 0) || 0;
-    const currentMonthRevenue = currentMonthAmount * interestRate;
-    
     const prevMonthAmount = prevMonthData?.reduce((sum, loan) => sum + parseFloat(loan.amount || 0), 0) || 0;
-    const prevMonthRevenue = prevMonthAmount * interestRate;
     
-    // Calculate percentage change
+    // Calculate percentage changes
     const revenueChange = prevMonthRevenue === 0 
       ? 100 // If previous month was 0, show 100% increase
       : ((currentMonthRevenue - prevMonthRevenue) / prevMonthRevenue) * 100;
@@ -122,13 +152,20 @@ export async function getMonthlyLoanStats() {
       ? 100 // If previous month was 0, show 100% increase
       : ((currentMonthAmount - prevMonthAmount) / prevMonthAmount) * 100;
     
+    const customersChange = prevMonthCustomers === 0
+      ? 100 // If previous month was 0, show 100% increase
+      : ((currentMonthCustomers - prevMonthCustomers) / prevMonthCustomers) * 100;
+    
     return {
       currentMonthRevenue: currentMonthRevenue.toFixed(2),
       prevMonthRevenue: prevMonthRevenue.toFixed(2),
       revenueChange: revenueChange.toFixed(1),
       currentMonthAmount: currentMonthAmount.toFixed(2),
       prevMonthAmount: prevMonthAmount.toFixed(2),
-      amountChange: amountChange.toFixed(1)
+      amountChange: amountChange.toFixed(1),
+      currentMonthCustomers,
+      prevMonthCustomers,
+      customersChange: customersChange.toFixed(1)
     };
   } catch (error) {
     console.error('Error calculating monthly loan stats:', error);
@@ -144,7 +181,7 @@ export async function getMonthlyRevenueData() {
     // Get all approved loans for the current year
     const { data, error } = await supabase
       .from('approved_loans')
-      .select('amount, timestamp')
+      .select('amount, totalReturn, timestamp')
       .gte('timestamp', new Date(currentYear, 0, 1).toISOString())
       .lt('timestamp', new Date(currentYear + 1, 0, 1).toISOString());
     
@@ -154,14 +191,11 @@ export async function getMonthlyRevenueData() {
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     const monthlyData = monthNames.map(name => ({ name, total: 0 }));
     
-    // Calculate revenue for each month (10% interest)
-    const interestRate = 0.1;
-    
+    // Calculate revenue for each month from totalReturn column
     data?.forEach(loan => {
       const loanDate = new Date(loan.timestamp);
       const month = loanDate.getMonth();
-      const amount = parseFloat(loan.amount || '0');
-      const revenue = amount * interestRate;
+      const revenue = parseFloat(loan.totalReturn || '0');
       
       monthlyData[month].total += revenue;
     });
