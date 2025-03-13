@@ -10,7 +10,8 @@ export interface SupabaseUser {
   role: number;
   created_at: string;
   profile_picture: string | null;
-  confirmed_email: boolean;
+  confirmed_email?: boolean; // Keep for backward compatibility
+  active?: boolean; // Add the correct field name
   date_of_birth: string | null;
 }
 

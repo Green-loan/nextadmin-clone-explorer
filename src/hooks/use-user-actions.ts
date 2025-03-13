@@ -44,9 +44,10 @@ export function useUpdateUserStatus() {
       userId: string; 
       isActive: boolean 
     }) => {
+      // Let's check if the column is actually named 'confirmed_email' or just 'active'
       const { data, error } = await supabase
         .from('users_account')
-        .update({ confirmed_email: isActive })
+        .update({ active: isActive })
         .eq('id', userId);
 
       if (error) throw new Error(error.message);
@@ -77,9 +78,17 @@ export function useUpdateUser() {
     mutationFn: async (userData: Partial<SupabaseUser> & { id: string }) => {
       const { id, ...updateData } = userData;
       
+      // Remove confirmed_email from the update data as it might not exist
+      // and replace it with the proper column name 'active'
+      const { confirmed_email, ...restData } = updateData as any;
+      const dataToUpdate = {
+        ...restData,
+        active: confirmed_email,
+      };
+      
       const { data, error } = await supabase
         .from('users_account')
-        .update(updateData)
+        .update(dataToUpdate)
         .eq('id', id);
 
       if (error) throw new Error(error.message);

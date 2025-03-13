@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
@@ -57,21 +56,20 @@ const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) => {
       email: '',
       gender: '',
       confirmed_email: false,
-      role: 3, // Default to User
+      role: 3,
       cellphone: '',
       home_address: '',
       date_of_birth: '',
     },
   });
 
-  // Update form when user data is loaded
   React.useEffect(() => {
     if (user) {
       form.reset({
         full_names: user.full_names,
         email: user.email,
         gender: user.gender,
-        confirmed_email: user.confirmed_email || false,
+        confirmed_email: user.active !== undefined ? user.active : (user.confirmed_email || false),
         role: user.role,
         cellphone: user.cellphone || '',
         home_address: user.home_address || '',
