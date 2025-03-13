@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import Layout from '@/components/layout/Layout';
 import StatCard from '@/components/dashboard/StatCard';
 import ActivityChart from '@/components/dashboard/ActivityChart';
-import RecentSales from '@/components/dashboard/RecentSales';
+import LoanApplicationsCard from '@/components/dashboard/LoanApplicationsCard';
 import Overview from '@/components/dashboard/Overview';
 import { 
   DollarSign, 
@@ -74,7 +74,7 @@ const Dashboard = () => {
         {/* Charts */}
         <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
           <ActivityChart />
-          <RecentSales />
+          <LoanApplicationsCard />
         </div>
 
         {/* Overview */}
