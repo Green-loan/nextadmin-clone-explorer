@@ -1,4 +1,3 @@
-
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
@@ -78,16 +77,9 @@ export function useUpdateUser() {
     mutationFn: async (userData: Partial<SupabaseUser> & { id: string }) => {
       const { id, ...updateData } = userData;
       
-      // Map the form field 'confirmed_email' to the database column 'confirmed'
-      const { confirmed_email, active, ...restData } = updateData as any;
-      const dataToUpdate = {
-        ...restData,
-        confirmed: confirmed_email !== undefined ? confirmed_email : active,
-      };
-      
       const { data, error } = await supabase
         .from('users_account')
-        .update(dataToUpdate)
+        .update(updateData)
         .eq('id', id);
 
       if (error) throw new Error(error.message);

@@ -25,13 +25,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 
 const userFormSchema = z.object({
   full_names: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
   email: z.string().email({ message: 'Please enter a valid email.' }),
   gender: z.string().min(1, { message: 'Please select a gender.' }),
-  confirmed_email: z.boolean(),
   role: z.number(),
   cellphone: z.string().optional(),
   home_address: z.string().optional(),
@@ -56,7 +54,6 @@ const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) => {
       full_names: '',
       email: '',
       gender: '',
-      confirmed_email: false,
       role: 3,
       cellphone: '',
       home_address: '',
@@ -70,7 +67,6 @@ const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) => {
         full_names: user.full_names,
         email: user.email,
         gender: user.gender,
-        confirmed_email: user.confirmed || false, // Use the confirmed field from the database
         role: user.role,
         cellphone: user.cellphone || '',
         home_address: user.home_address || '',
@@ -204,51 +200,31 @@ const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) => {
                 )}
               />
 
-              <div className="grid grid-cols-2 gap-3">
-                <FormField
-                  control={form.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Role</FormLabel>
-                      <Select 
-                        onValueChange={(value) => field.onChange(parseInt(value))} 
-                        defaultValue={field.value.toString()}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select role" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="1">Admin</SelectItem>
-                          <SelectItem value="2">Editor</SelectItem>
-                          <SelectItem value="3">User</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="confirmed_email"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-2 mt-6">
-                      <div className="space-y-0.5">
-                        <FormLabel className="text-sm">Active Status</FormLabel>
-                      </div>
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Role</FormLabel>
+                    <Select 
+                      onValueChange={(value) => field.onChange(parseInt(value))} 
+                      defaultValue={field.value.toString()}
+                    >
                       <FormControl>
-                        <Switch
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
                       </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </div>
+                      <SelectContent>
+                        <SelectItem value="1">Admin</SelectItem>
+                        <SelectItem value="2">Editor</SelectItem>
+                        <SelectItem value="3">User</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
               <DialogFooter className="pt-3">
                 <Button type="button" variant="outline" onClick={onClose} size="sm">
