@@ -50,12 +50,12 @@ export function GreenFinanceAI() {
       if (!model && open) {
         try {
           setModelLoading(true);
-          // Load the Phi-2 model (Q2_K quantized version)
+          // Load the Phi-2 model with correct options that match the PretrainedModelOptions type
           const textGenerator = await pipeline(
             'text-generation',
-            'microsoft/phi-2', // Using the base model ID, the pipeline will use the best available variant
+            'microsoft/phi-2', 
             { 
-              quantized: true,
+              // Use only properties that are supported by the PretrainedModelOptions type
               revision: 'Q2_K',
               device: 'webgpu' // Try to use WebGPU for better performance if available
             }
