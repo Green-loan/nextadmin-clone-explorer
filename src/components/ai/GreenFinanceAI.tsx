@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Bot, SendIcon, ArrowLeft, FileImage, Paperclip, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,7 +23,7 @@ const INITIAL_MESSAGE: Message = {
 const SYSTEM_MESSAGE: Message = {
   role: 'system',
   content: 'You are a helpful Green Finance AI assistant. Your goal is to provide clear, accurate information about sustainable finance, green loans, and eco-friendly business practices. Keep responses concise and focused on financial topics.',
-  timestamp: ''
+  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 };
 
 // Fallback responses about green finance if the model isn't loaded
@@ -74,7 +73,8 @@ export function GreenFinanceAI() {
       // Add previous messages (limited to last 10 for context window management)
       const relevantMessages = messages.slice(-10).map(msg => ({
         role: msg.role,
-        content: msg.content
+        content: msg.content,
+        timestamp: msg.timestamp
       }));
       
       conversationHistory.push(...relevantMessages);
@@ -82,7 +82,8 @@ export function GreenFinanceAI() {
       // Add current message
       conversationHistory.push({
         role: 'user',
-        content: input
+        content: input,
+        timestamp: currentTime
       });
       
       // Call OpenAI API
@@ -95,7 +96,7 @@ export function GreenFinanceAI() {
         },
         body: JSON.stringify({
           model: 'gpt-4o-mini',
-          messages: conversationHistory,
+          messages: conversationHistory.map(msg => ({ role: msg.role, content: msg.content })),
           temperature: 0.7,
           max_tokens: 500
         })
