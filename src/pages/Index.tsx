@@ -60,16 +60,16 @@ const Dashboard = () => {
 
   return (
     <Layout>
-      <div className="grid gap-6">
+      <div className="grid gap-4 sm:gap-6">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Dashboard</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Welcome to your dashboard overview.
           </p>
         </div>
         
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
           <StatCard
             title="Total Revenue"
             value={isLoading ? 'Loading...' : `R${revenueData?.totalRevenue || '0.00'}`}
@@ -105,43 +105,43 @@ const Dashboard = () => {
         </div>
 
         {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-7 gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6">
           <Overview chartData={chartData || []} />
           <LoanApplicationsCard />
         </div>
 
         {/* Recent Sales */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6">
           <RecentSales />
         </div>
 
         {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-6">
           <Card className="hover-scale">
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="space-y-2">
-                <h3 className="text-lg font-medium">Welcome to Loan Management</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="text-base sm:text-lg font-medium">Welcome to Loan Management</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   This dashboard provides an overview of your loan business metrics and performance.
                 </p>
               </div>
             </CardContent>
           </Card>
           <Card className="hover-scale">
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="space-y-2">
-                <h3 className="text-lg font-medium">Need Help?</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="text-base sm:text-lg font-medium">Need Help?</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Check out our documentation for more information on how to use the loan management system.
                 </p>
               </div>
             </CardContent>
           </Card>
           <Card className="hover-scale">
-            <CardContent className="p-6">
+            <CardContent className="p-4 sm:p-6">
               <div className="space-y-2">
-                <h3 className="text-lg font-medium">What's New</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="text-base sm:text-lg font-medium">What's New</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground">
                   Revenue tracking and loan metrics are now available in your dashboard.
                 </p>
               </div>

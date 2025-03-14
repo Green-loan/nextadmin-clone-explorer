@@ -11,7 +11,8 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
-  Menu
+  Menu,
+  X
 } from 'lucide-react';
 
 type SidebarProps = {
@@ -47,7 +48,7 @@ const Sidebar = ({ isMobile, isOpen, toggleSidebar }: SidebarProps) => {
         "bg-sidebar transition-all duration-300 ease-in-out",
         isMobile && "hidden"
       )}>
-        <div className="flex items-center justify-center h-16 mb-4">
+        <div className="flex items-center justify-center h-16 mb-2">
           <button 
             onClick={toggleSidebar} 
             className="rounded-md p-2 hover:bg-sidebar-accent/80 transition-colors"
@@ -56,13 +57,13 @@ const Sidebar = ({ isMobile, isOpen, toggleSidebar }: SidebarProps) => {
           </button>
         </div>
         
-        <nav className="flex-grow px-2 space-y-2">
+        <nav className="flex-grow px-2 space-y-1">
           {sidebarLinks.map((link) => (
             <NavLink
               key={link.path}
               to={link.path}
               className={({ isActive }) => cn(
-                "sidebar-item justify-center py-3",
+                "sidebar-item justify-center py-2.5",
                 isActive && "active"
               )}
             >
@@ -72,7 +73,7 @@ const Sidebar = ({ isMobile, isOpen, toggleSidebar }: SidebarProps) => {
         </nav>
 
         <div className="px-2 pt-2 mt-auto">
-          <button className="sidebar-item justify-center py-3 w-full text-sidebar-foreground/70 hover:text-destructive">
+          <button className="sidebar-item justify-center py-2.5 w-full text-sidebar-foreground/70 hover:text-destructive">
             <LogOut size={20} />
           </button>
         </div>
@@ -92,34 +93,34 @@ const Sidebar = ({ isMobile, isOpen, toggleSidebar }: SidebarProps) => {
       
       {/* Sidebar */}
       <div className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 flex flex-col bg-sidebar py-4 border-r border-sidebar-border",
+        "fixed inset-y-0 left-0 z-50 w-[80%] sm:w-64 flex flex-col bg-sidebar py-3 sm:py-4 border-r border-sidebar-border",
         "transition-all duration-300 ease-in-out",
         isMobile && "animate-slide-in-left",
         !isMobile && "animate-fade-in"
       )}>
-        <div className="flex items-center justify-between h-16 px-4 mb-4">
+        <div className="flex items-center justify-between h-16 px-4 mb-2 sm:mb-4">
           <div className="flex items-center">
-            <span className="text-xl font-semibold text-sidebar-foreground">NextAdmin</span>
+            <span className="text-lg sm:text-xl font-semibold text-sidebar-foreground">NextAdmin</span>
           </div>
           <button 
             onClick={toggleSidebar} 
             className="rounded-md p-1.5 hover:bg-sidebar-accent/80 transition-colors"
           >
             {isMobile ? (
-              <Menu className="h-5 w-5 text-sidebar-foreground" />
+              <X className="h-5 w-5 text-sidebar-foreground" />
             ) : (
               <ChevronLeft className="h-5 w-5 text-sidebar-foreground" />
             )}
           </button>
         </div>
         
-        <nav className="flex-grow px-3 space-y-1">
+        <nav className="flex-grow px-3 space-y-0.5 sm:space-y-1 overflow-y-auto">
           {sidebarLinks.map((link) => (
             <NavLink
               key={link.path}
               to={link.path}
               className={({ isActive }) => cn(
-                "sidebar-item",
+                "sidebar-item py-2 sm:py-2.5",
                 isActive && "active"
               )}
             >
@@ -130,7 +131,7 @@ const Sidebar = ({ isMobile, isOpen, toggleSidebar }: SidebarProps) => {
         </nav>
 
         <div className="px-3 pt-2 mt-auto border-t border-sidebar-border/50">
-          <button className="sidebar-item w-full text-sidebar-foreground/70 hover:text-destructive">
+          <button className="sidebar-item w-full text-sidebar-foreground/70 hover:text-destructive py-2 sm:py-2.5">
             <LogOut size={20} />
             <span className="text-sm">Logout</span>
           </button>

@@ -65,8 +65,8 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
 
   return (
     <header className="sticky top-0 z-30 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between px-4 sm:px-6">
-        <div className="flex items-center gap-4">
+      <div className="flex h-14 sm:h-16 items-center justify-between px-3 sm:px-6">
+        <div className="flex items-center gap-2 sm:gap-4">
           <Button
             variant="ghost"
             size="icon"
@@ -77,22 +77,22 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             <span className="sr-only">Toggle Menu</span>
           </Button>
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <img 
               src="/lovable-uploads/a2ba7d49-d862-44f2-ba79-09dfd459d0dd.png" 
               alt="Green Finance Logo" 
-              className="h-[95px] w-[95px] object-contain" 
+              className="h-[80px] w-[80px] sm:h-[95px] sm:w-[95px] object-contain" 
             />
           </div>
         </div>
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
           <div className="relative hidden md:block">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
               placeholder="Search..."
-              className="w-[200px] lg:w-[280px] pl-8 bg-background"
+              className="w-[180px] lg:w-[280px] pl-8 bg-background"
             />
           </div>
           
@@ -109,29 +109,29 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="rounded-full">
-                <Avatar className="h-8 w-8">
+                <Avatar className="h-7 w-7 sm:h-8 sm:w-8">
                   {profileUrl ? (
                     <AvatarImage src={profileUrl} alt="User" />
                   ) : (
-                    <AvatarFallback>{userInitials}</AvatarFallback>
+                    <AvatarFallback className="text-xs sm:text-sm">{userInitials}</AvatarFallback>
                   )}
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 animate-scale-in">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+            <DropdownMenuContent align="end" className="w-52 sm:w-56 animate-scale-in">
+              <DropdownMenuLabel className="text-xs sm:text-sm">My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer">
-                <User className="mr-2 h-4 w-4" />
+              <DropdownMenuItem className="text-xs sm:text-sm cursor-pointer">
+                <User className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
-                <Settings className="mr-2 h-4 w-4" />
+              <DropdownMenuItem className="text-xs sm:text-sm cursor-pointer">
+                <Settings className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer text-destructive">
-                <LogOut className="mr-2 h-4 w-4" />
+              <DropdownMenuItem className="text-xs sm:text-sm cursor-pointer text-destructive">
+                <LogOut className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>
             </DropdownMenuContent>

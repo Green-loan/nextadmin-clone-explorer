@@ -39,7 +39,7 @@ const Layout = ({ children }: LayoutProps) => {
       )}>
         <Header toggleSidebar={toggleSidebar} />
         
-        <main className="flex-1 px-4 sm:px-6 pt-6 pb-16 animate-fade-in">
+        <main className="flex-1 px-4 sm:px-6 pt-4 pb-16 animate-fade-in">
           <div className="mx-auto max-w-7xl">
             {children}
           </div>
