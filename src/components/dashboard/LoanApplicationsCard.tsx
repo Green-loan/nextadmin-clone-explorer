@@ -180,16 +180,16 @@ const LoanApplicationsCard = () => {
               {loansToDisplay.map((loan: LoanApplication) => (
                 <div 
                   key={loan.id} 
-                  className="flex items-center justify-between p-2 border border-gray-100 rounded-md"
+                  className="flex flex-col sm:flex-row sm:items-center justify-between p-2 border border-gray-100 rounded-md gap-2"
                 >
-                  <div className="flex items-center space-x-2 max-w-[60%]">
+                  <div className="flex items-center space-x-2 min-w-0 max-w-full">
                     <Avatar className="h-6 w-6 flex-shrink-0">
                       <AvatarImage src="/placeholder.svg" alt={loan.name} />
                       <AvatarFallback className="bg-primary text-primary-foreground text-xs">
                         {getNameInitials(loan.name)}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="overflow-hidden">
+                    <div className="overflow-hidden flex-1 min-w-0">
                       <p className="text-xs font-medium truncate">{loan.name}</p>
                       <p className="text-xs text-muted-foreground truncate">{loan.email || loan.phone}</p>
                       <p className="text-xs font-medium text-muted-foreground">
@@ -197,14 +197,14 @@ const LoanApplicationsCard = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end">
+                  <div className="flex flex-col sm:items-end w-full sm:w-auto">
                     <p className="text-xs font-medium text-green-600 dark:text-green-400 whitespace-nowrap">
                       R{loan.amount.toFixed(2)} 
                       <span className="text-xs text-muted-foreground ml-1">
                         → R{calculateReturningAmount(loan.amount)}
                       </span>
                     </p>
-                    <div className="flex gap-1 mt-1">
+                    <div className="flex gap-1 mt-1 flex-wrap justify-end">
                       <Button 
                         variant="outline" 
                         size="sm"
@@ -249,7 +249,7 @@ const LoanApplicationsCard = () => {
 
       {/* Loan Details Dialog - More compact, with data persisted */}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
-        <DialogContent className="sm:max-w-[300px] p-3">
+        <DialogContent className="sm:max-w-[300px] p-3 w-[95vw] max-w-[95vw] sm:max-w-[400px]">
           <DialogHeader className="pb-1">
             <DialogTitle className="text-base">Loan Details</DialogTitle>
             <DialogDescription className="text-xs">

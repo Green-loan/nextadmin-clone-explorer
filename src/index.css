@@ -95,6 +95,12 @@
   body {
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Disable double-tap zoom on iOS for better touch interactions */
+  button, a {
+    touch-action: manipulation;
   }
 
   /* Custom scrollbar */
@@ -162,6 +168,36 @@
   .touch-target {
     @apply min-h-[44px] min-w-[44px];
   }
+  
+  .truncate-text {
+    @apply overflow-hidden text-ellipsis whitespace-nowrap;
+  }
+  
+  .mobile-container {
+    @apply px-3 sm:px-6 max-w-full overflow-x-hidden;
+  }
+  
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Prevent text scaling */
+  .text-size-adjust-none {
+    -webkit-text-size-adjust: none;
+    text-size-adjust: none;
+  }
+  
+  /* Fix for iOS input zoom */
+  @media screen and (max-width: 767px) {
+    input, select, textarea {
+      font-size: 16px !important;
+    }
+  }
 }
 
 /* Component Styles */
@@ -205,5 +241,19 @@
   
   .py-responsive {
     @apply py-3 sm:py-4 md:py-6;
+  }
+  
+  /* Mobile-first card layouts */
+  .mobile-card {
+    @apply p-3 sm:p-4 flex flex-col sm:flex-row gap-2 sm:gap-4 w-full overflow-hidden;
+  }
+  
+  /* Flex containers optimized for mobile */
+  .flex-mobile {
+    @apply flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4;
+  }
+  
+  .flex-mobile-reverse {
+    @apply flex flex-col-reverse sm:flex-row items-start sm:items-center gap-2 sm:gap-4;
   }
 }

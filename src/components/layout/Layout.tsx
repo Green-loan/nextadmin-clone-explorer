@@ -26,7 +26,7 @@ const Layout = ({ children }: LayoutProps) => {
   if (!mounted) return null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <Sidebar 
         isMobile={isMobile} 
         isOpen={sidebarOpen} 
@@ -34,12 +34,12 @@ const Layout = ({ children }: LayoutProps) => {
       />
       
       <div className={cn(
-        "flex flex-col transition-all duration-300 ease-in-out",
+        "flex flex-col transition-all duration-300 ease-in-out w-full",
         sidebarOpen ? (isMobile ? "ml-0" : "ml-64") : "ml-0 md:ml-16"
       )}>
         <Header toggleSidebar={toggleSidebar} />
         
-        <main className="flex-1 px-4 sm:px-6 pt-4 pb-16 animate-fade-in">
+        <main className="flex-1 px-3 sm:px-6 pt-4 pb-16 animate-fade-in overflow-hidden">
           <div className="mx-auto max-w-7xl">
             {children}
           </div>
