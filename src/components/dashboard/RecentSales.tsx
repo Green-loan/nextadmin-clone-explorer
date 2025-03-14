@@ -14,21 +14,21 @@ interface LoanProps {
   email: string;
   amount: string;
   totalReturn: string;
-  status?: 'paid' | 'pending';
+  status: boolean;
   dueDate?: string;
   image?: string;
 }
 
 const calculateTotalPending = (loans: LoanProps[]) => {
   return loans
-    .filter(loan => loan.status === 'pending')
+    .filter(loan => !loan.status)
     .reduce((total, loan) => total + parseFloat(loan.totalReturn || '0'), 0);
 };
 
 const getBestClients = (loans: LoanProps[]) => {
   // Count occurrences of each client who has paid
   const clientCounts = loans
-    .filter(loan => loan.status === 'paid')
+    .filter(loan => loan.status)
     .reduce((acc: Record<string, number>, loan) => {
       acc[loan.name] = (acc[loan.name] || 0) + 1;
       return acc;
@@ -58,7 +58,7 @@ const RecentSales = () => {
     email: loan.email,
     amount: `R${parseFloat(loan.amount).toFixed(2)}`,
     totalReturn: loan.totalReturn || loan.amount,
-    status: Math.random() > 0.5 ? 'paid' : 'pending', // Simulate status for now - replace with real status when available
+    status: loan.status, // Using the actual status from the database
     dueDate: loan.due_date,
     image: loan.image,
   }));
@@ -66,7 +66,7 @@ const RecentSales = () => {
   // Apply filtering
   const filteredLoans = processedLoans.filter(loan => {
     if (filter === 'all') return true;
-    return loan.status === filter;
+    return (filter === 'paid' && loan.status) || (filter === 'pending' && !loan.status);
   });
 
   // Calculate total pending amount
@@ -141,27 +141,27 @@ const RecentSales = () => {
                     </div>
                     <div className="text-right">
                       <div className="flex items-center justify-end space-x-2">
-                        <p className={`text-sm font-medium ${loan.status === 'paid' ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
-                          {loan.status === 'paid' ? '+' : ''}R{parseFloat(loan.totalReturn).toFixed(2)}
+                        <p className={`text-sm font-medium ${loan.status ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
+                          {loan.status ? '+' : ''}R{parseFloat(loan.totalReturn).toFixed(2)}
                         </p>
                         <Badge 
-                          variant={loan.status === 'paid' ? 'outline' : 'secondary'}
+                          variant={loan.status ? 'outline' : 'secondary'}
                           className={`
                             ml-2 
-                            ${loan.status === 'paid' 
+                            ${loan.status 
                               ? 'bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400 hover:bg-green-100' 
                               : 'bg-orange-100 text-orange-800 dark:bg-orange-800/20 dark:text-orange-400 hover:bg-orange-100'}
                           `}
                         >
-                          {loan.status === 'paid' ? (
+                          {loan.status ? (
                             <Check className="h-3.5 w-3.5 mr-1" />
                           ) : (
                             <Clock className="h-3.5 w-3.5 mr-1" />
                           )}
-                          {loan.status === 'paid' ? 'Paid' : 'Pending'}
+                          {loan.status ? 'Paid' : 'Pending'}
                         </Badge>
                       </div>
-                      {loan.dueDate && loan.status === 'pending' && (
+                      {loan.dueDate && !loan.status && (
                         <p className="text-xs text-muted-foreground mt-1">
                           Due: {new Date(loan.dueDate).toLocaleDateString()}
                         </p>
