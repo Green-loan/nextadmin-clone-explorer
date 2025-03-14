@@ -12,7 +12,8 @@ CREATE TABLE users_account (
     encryptedPass VARCHAR(255),
     salt VARCHAR(255),
     confirmed BOOLEAN DEFAULT false,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    profile_picture TEXT
 );
 
 -- Create the loan_applications table

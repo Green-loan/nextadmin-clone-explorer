@@ -202,15 +202,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const { error: profileError } = await supabase.from("users_account").insert([
         {
           id: authData.user.id, // Use the auth user ID to link the accounts
-          email,
+          email: email,
           full_names: fullName,
-          gender,
-          home_address: homeAddress,
-          cellphone,
+          gender: gender,
+          home_address: homeAddress || null,
+          cellphone: cellphone,
           user_number: userNumber,
           role: 3, // Default user role
-          encryptedPass,
-          salt,
+          encryptedPass: encryptedPass,
+          salt: salt,
+          confirmed: false,
           date_of_birth: null, // Default null
         },
       ]);
@@ -220,12 +221,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         // If profile insertion fails, delete the auth user
         if (authData.user) {
-          const { error: deleteAuthError } = await supabase.auth.admin.deleteUser(
-            authData.user.id
-          );
-          
-          if (deleteAuthError) {
-            console.error("Failed to clean up auth user:", deleteAuthError);
+          try {
+            // Note: normal users can't use admin.deleteUser, so we'll sign out instead
+            await supabase.auth.signOut();
+            console.log("Signed out auth user after profile insert failure");
+          } catch (deleteError) {
+            console.error("Failed to sign out auth user:", deleteError);
           }
         }
         

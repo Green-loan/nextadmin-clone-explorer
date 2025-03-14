@@ -31,6 +31,10 @@ const Login = () => {
   const [signupHomeAddress, setSignupHomeAddress] = useState("");
   const [signupCellphone, setSignupCellphone] = useState("");
   
+  // State for button loading
+  const [isSigningUp, setIsSigningUp] = useState(false);
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -40,10 +44,13 @@ const Login = () => {
     }
     
     try {
+      setIsSigningIn(true);
       await signIn(loginEmail, loginPassword);
       navigate("/");
     } catch (error) {
       console.error("Login failed:", error);
+    } finally {
+      setIsSigningIn(false);
     }
   };
   
@@ -61,6 +68,7 @@ const Login = () => {
     }
     
     try {
+      setIsSigningUp(true);
       toast.loading("Creating your account...");
       
       await signUp(
@@ -85,9 +93,14 @@ const Login = () => {
       
       // Switch to login tab
       document.getElementById("login-tab")?.click();
+      
+      toast.success("Account created! Please check your email to verify your account.");
     } catch (error) {
       toast.dismiss();
       console.error("Signup error in form:", error);
+      toast.error(error instanceof Error ? error.message : "Failed to create account");
+    } finally {
+      setIsSigningUp(false);
     }
   };
   
