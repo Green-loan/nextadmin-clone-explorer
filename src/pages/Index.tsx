@@ -11,7 +11,8 @@ import {
   DollarSign, 
   Users, 
   CreditCard, 
-  Activity
+  Activity,
+  TrendingUp
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { getTotalLoanRevenue, getMonthlyLoanStats, getMonthlyRevenueData, getCustomersCount } from '@/lib/supabase-utils';
@@ -51,6 +52,17 @@ const Dashboard = () => {
     refetchOnWindowFocus: false,
   });
 
+  // Calculate profit (revenue - loan amount)
+  const calculateProfit = () => {
+    if (!revenueData) return '0.00';
+    
+    const totalRevenue = parseFloat(revenueData.totalRevenue || '0');
+    const totalAmount = parseFloat(revenueData.totalAmount || '0');
+    const profit = totalRevenue - totalAmount;
+    
+    return profit.toFixed(2);
+  };
+
   useEffect(() => {
     // Set loading state based on data availability
     if (revenueData && monthlyStats) {
@@ -69,13 +81,21 @@ const Dashboard = () => {
         </div>
         
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           <StatCard
             title="Total Revenue"
             value={isLoading ? 'Loading...' : `R${revenueData?.totalRevenue || '0.00'}`}
             description="vs. previous month"
             icon={DollarSign}
             trend={monthlyStats?.revenueChange ? parseFloat(monthlyStats.revenueChange) : 0}
+            className={isLoading ? "animate-pulse" : ""}
+          />
+          <StatCard
+            title="Profit"
+            value={isLoading ? 'Loading...' : `R${calculateProfit()}`}
+            description="revenue - loan amount"
+            icon={TrendingUp}
+            trend={0}
             className={isLoading ? "animate-pulse" : ""}
           />
           <StatCard
