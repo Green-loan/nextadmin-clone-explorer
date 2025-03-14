@@ -1,16 +1,16 @@
-
 -- Create the users_account table
 CREATE TABLE users_account (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    id UUID PRIMARY KEY,
     full_names VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    phone VARCHAR(50),
-    id_number VARCHAR(20),
     gender VARCHAR(20),
     date_of_birth DATE,
     home_address TEXT,
-    province VARCHAR(100),
+    cellphone VARCHAR(50),
+    user_number VARCHAR(20),
+    role INTEGER DEFAULT 3,
+    encryptedPass VARCHAR(255),
+    salt VARCHAR(255),
     confirmed BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

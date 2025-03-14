@@ -166,7 +166,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true);
       
-      // First, sign up with auth
+      // Step 1: Create auth user first
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -177,7 +177,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw authError;
       }
       
-      // Generate user number
+      if (!authData.user) {
+        throw new Error("Failed to create auth user");
+      }
+      
+      console.log("Auth user created:", authData.user);
+      
+      // Step 2: Generate user number
       const { count, error: countError } = await supabase
         .from("users_account")
         .select("*", { count: 'exact', head: true });
@@ -189,12 +195,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       const userNumber = `#${(count || 0) + 1}`;
       
-      // Encrypt the password 
+      // Step 3: Encrypt the password 
       const { encryptedPass, salt } = await encryptPassword(password);
       
-      // Now insert into users_account table
+      // Step 4: Insert into users_account table
       const { error: profileError } = await supabase.from("users_account").insert([
         {
+          id: authData.user.id, // Use the auth user ID to link the accounts
           email,
           full_names: fullName,
           gender,
@@ -212,7 +219,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error("Profile insert error:", profileError);
         
         // If profile insertion fails, delete the auth user
-        if (authData?.user) {
+        if (authData.user) {
           const { error: deleteAuthError } = await supabase.auth.admin.deleteUser(
             authData.user.id
           );
@@ -225,6 +232,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw profileError;
       }
       
+      console.log("User profile created successfully");
       toast.success("Account created successfully! Please check your email to verify your account.");
     } catch (error) {
       console.error("Signup error:", error);

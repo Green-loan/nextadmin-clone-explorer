@@ -61,6 +61,8 @@ const Login = () => {
     }
     
     try {
+      toast.loading("Creating your account...");
+      
       await signUp(
         signupEmail, 
         signupPassword, 
@@ -69,6 +71,8 @@ const Login = () => {
         signupHomeAddress || "",
         signupCellphone
       );
+      
+      toast.dismiss();
       
       // Reset form fields after successful signup
       setSignupEmail("");
@@ -82,6 +86,7 @@ const Login = () => {
       // Switch to login tab
       document.getElementById("login-tab")?.click();
     } catch (error) {
+      toast.dismiss();
       console.error("Signup error in form:", error);
     }
   };
