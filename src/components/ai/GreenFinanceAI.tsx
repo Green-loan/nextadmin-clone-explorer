@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from 'react';
 import { Bot, SendIcon, ArrowLeft, FileImage, Paperclip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -50,20 +49,19 @@ export function GreenFinanceAI() {
       if (!model && open) {
         try {
           setModelLoading(true);
-          // Load the Phi-2 model with correct options that match the PretrainedModelOptions type
+          // Load the DeepSeek-R1 model
           const textGenerator = await pipeline(
             'text-generation',
-            'microsoft/phi-2', 
+            'deepseek-ai/DeepSeek-R1', 
             { 
-              // Use only properties that are supported by the PretrainedModelOptions type
-              revision: 'Q2_K',
+              trust_remote_code: true,
               device: 'webgpu' // Try to use WebGPU for better performance if available
             }
           );
           setModel(textGenerator);
           toast({
-            title: "Phi-2 Model Loaded",
-            description: "Using Microsoft's Phi-2 language model for responses.",
+            title: "DeepSeek-R1 Model Loaded",
+            description: "Using DeepSeek-R1 language model for responses.",
             variant: "default"
           });
         } catch (error) {
@@ -97,28 +95,33 @@ export function GreenFinanceAI() {
       let aiResponse: string;
       
       if (model) {
-        // Generate response with Phi-2 model
-        const result = await model(input, {
+        // Format message history for DeepSeek-R1 model
+        const messageHistory = messages.map(msg => ({
+          role: msg.role === 'assistant' ? 'Green finance AI' : 'user',
+          content: msg.content
+        }));
+        
+        // Add current user message
+        messageHistory.push({
+          role: 'user',
+          content: input
+        });
+        
+        // Generate response with DeepSeek-R1 model
+        const result = await model(messageHistory, {
           max_length: 100,
           temperature: 0.7,
           top_p: 0.9,
           repetition_penalty: 1.2,
         });
         
-        // Extract the generated text and clean it up
-        aiResponse = result[0].generated_text.replace(input, '').trim();
+        // Extract the generated text
+        aiResponse = result[0].generated_text;
         
-        // Filter out any repeated or low-quality responses
-        if (!aiResponse || aiResponse.length < 10 || aiResponse.includes("[END]")) {
+        // If the response is empty or low quality, use fallback
+        if (!aiResponse || aiResponse.length < 10) {
           aiResponse = FALLBACK_RESPONSES[Math.floor(Math.random() * FALLBACK_RESPONSES.length)];
         }
-        
-        // Sometimes the model generates extraneous tokens, clean them up
-        aiResponse = aiResponse
-          .split('\n')
-          .filter(line => line.trim().length > 0)
-          .join('\n')
-          .replace(/^[^a-zA-Z0-9]*/, '');
       } else {
         // Use fallback response if model is not loaded
         aiResponse = FALLBACK_RESPONSES[Math.floor(Math.random() * FALLBACK_RESPONSES.length)];
@@ -186,7 +189,7 @@ export function GreenFinanceAI() {
               <div>
                 <h2 className="text-sm font-semibold">Green Finance Assistant</h2>
                 <p className="text-xs opacity-90">
-                  {modelLoading ? "Loading Phi-2 model..." : isLoading ? "Typing..." : "Online"}
+                  {modelLoading ? "Loading DeepSeek-R1 model..." : isLoading ? "Typing..." : "Online"}
                 </p>
               </div>
             </div>
