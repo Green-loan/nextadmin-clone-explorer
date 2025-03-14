@@ -2,7 +2,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
-import crypto from 'crypto';
 
 type User = {
   id: string;
@@ -19,13 +18,33 @@ interface AuthContextType {
   signUp: (email: string, password: string, fullName: string, gender: string, homeAddress: string, cellphone: string) => Promise<void>;
 }
 
-// Utility function for password encryption with salt
-const encryptPassword = (password: string): { encryptedPass: string, salt: string } => {
+// Utility function to convert a string to an ArrayBuffer
+const stringToArrayBuffer = (str: string): ArrayBuffer => {
+  const encoder = new TextEncoder();
+  return encoder.encode(str).buffer;
+};
+
+// Utility function to convert an ArrayBuffer to a hex string
+const arrayBufferToHex = (buffer: ArrayBuffer): string => {
+  return Array.from(new Uint8Array(buffer))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+};
+
+// Utility function for password encryption with salt using Web Crypto API
+const encryptPassword = async (password: string): Promise<{ encryptedPass: string, salt: string }> => {
   // Generate a random salt
-  const salt = crypto.randomBytes(16).toString('hex');
+  const saltArray = new Uint8Array(16);
+  window.crypto.getRandomValues(saltArray);
+  const salt = arrayBufferToHex(saltArray);
   
-  // Use the salt with the password and hash it
-  const hash = crypto.pbkdf2Sync(password, salt + 'clinton', 1000, 64, 'sha512').toString('hex');
+  // Create a key from the password and salt
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + salt + 'clinton');
+  
+  // Hash the data using SHA-512
+  const hashBuffer = await window.crypto.subtle.digest('SHA-512', data);
+  const hash = arrayBufferToHex(hashBuffer);
   
   return {
     encryptedPass: hash,
@@ -33,10 +52,15 @@ const encryptPassword = (password: string): { encryptedPass: string, salt: strin
   };
 };
 
-// Utility function to verify password
-const verifyPassword = (password: string, hash: string, salt: string): boolean => {
-  const verifyHash = crypto.pbkdf2Sync(password, salt + 'clinton', 1000, 64, 'sha512').toString('hex');
-  return hash === verifyHash;
+// Utility function to verify password using Web Crypto API
+const verifyPassword = async (password: string, hash: string, salt: string): Promise<boolean> => {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(password + salt + 'clinton');
+  
+  const hashBuffer = await window.crypto.subtle.digest('SHA-512', data);
+  const calculatedHash = arrayBufferToHex(hashBuffer);
+  
+  return hash === calculatedHash;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -159,8 +183,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       const userNumber = `#${(count || 0) + 1}`;
       
-      // Encrypt the password
-      const { encryptedPass, salt } = encryptPassword(password);
+      // Encrypt the password using Web Crypto API
+      const { encryptedPass, salt } = await encryptPassword(password);
       
       // If auth signup succeeded, insert the user data into users_account table
       const { error: profileError } = await supabase.from("users_account").insert([
