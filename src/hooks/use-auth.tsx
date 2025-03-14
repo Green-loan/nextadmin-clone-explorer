@@ -166,27 +166,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true);
       
-      // Sign up with Supabase Auth
-      const { data, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-      
-      if (authError) throw authError;
-      
       // Generate user number (e.g., #4, #5, etc.)
       const { count, error: countError } = await supabase
         .from("users_account")
         .select("*", { count: 'exact', head: true });
       
-      if (countError) throw countError;
+      if (countError) {
+        console.error("Count error:", countError);
+        throw countError;
+      }
       
       const userNumber = `#${(count || 0) + 1}`;
       
       // Encrypt the password using Web Crypto API
       const { encryptedPass, salt } = await encryptPassword(password);
       
-      // If auth signup succeeded, insert the user data into users_account table
+      // First insert into users_account table (we'll handle auth signup after this)
       const { error: profileError } = await supabase.from("users_account").insert([
         {
           email,
@@ -203,8 +198,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       ]);
       
       if (profileError) {
-        console.error("Profile error:", profileError);
+        console.error("Profile insert error:", profileError);
         throw profileError;
+      }
+      
+      // After successfully storing user data, create auth user
+      const { data, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      
+      if (authError) {
+        console.error("Auth signup error:", authError);
+        // If auth fails, we should clean up the inserted record
+        const { error: cleanupError } = await supabase
+          .from("users_account")
+          .delete()
+          .eq("email", email);
+          
+        if (cleanupError) {
+          console.error("Cleanup error:", cleanupError);
+        }
+        
+        throw authError;
       }
       
       toast.success("Account created successfully! Please check your email to verify your account.");

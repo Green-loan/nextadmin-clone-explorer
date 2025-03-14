@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
 import Logo from "@/components/ui/logo";
 import ThreeBackground from "@/components/ui/ThreeBackground";
+import { Eye, EyeOff } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -17,11 +19,14 @@ const Login = () => {
   // Login form state
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPassword, setLoginPassword] = useState("");
+  const [showLoginPassword, setShowLoginPassword] = useState(false);
   
   // Signup form state
   const [signupEmail, setSignupEmail] = useState("");
   const [signupPassword, setSignupPassword] = useState("");
   const [signupConfirmPassword, setSignupConfirmPassword] = useState("");
+  const [showSignupPassword, setShowSignupPassword] = useState(false);
+  const [showSignupConfirmPassword, setShowSignupConfirmPassword] = useState(false);
   const [signupFullName, setSignupFullName] = useState("");
   const [signupGender, setSignupGender] = useState("");
   const [signupHomeAddress, setSignupHomeAddress] = useState("");
@@ -124,15 +129,24 @@ const Login = () => {
                       Forgot password?
                     </Link>
                   </div>
-                  <Input 
-                    id="password" 
-                    type="password" 
-                    placeholder=""
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    required
-                    className="bg-white/50 border-white/30"
-                  />
+                  <div className="relative">
+                    <Input 
+                      id="password" 
+                      type={showLoginPassword ? "text" : "password"}
+                      placeholder=""
+                      value={loginPassword}
+                      onChange={(e) => setLoginPassword(e.target.value)}
+                      required
+                      className="bg-white/50 border-white/30 pr-10"
+                    />
+                    <button 
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      onClick={() => setShowLoginPassword(!showLoginPassword)}
+                    >
+                      {showLoginPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                 </div>
               </CardContent>
               <CardFooter>
@@ -212,27 +226,45 @@ const Login = () => {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="signup-password" className="text-foreground font-medium">Password <span className="text-red-500">*</span></Label>
-                  <Input 
-                    id="signup-password" 
-                    type="password"
-                    placeholder=""
-                    value={signupPassword}
-                    onChange={(e) => setSignupPassword(e.target.value)}
-                    required
-                    className="bg-white/50 border-white/30"
-                  />
+                  <div className="relative">
+                    <Input 
+                      id="signup-password" 
+                      type={showSignupPassword ? "text" : "password"}
+                      placeholder=""
+                      value={signupPassword}
+                      onChange={(e) => setSignupPassword(e.target.value)}
+                      required
+                      className="bg-white/50 border-white/30 pr-10"
+                    />
+                    <button 
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      onClick={() => setShowSignupPassword(!showSignupPassword)}
+                    >
+                      {showSignupPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="confirm-password" className="text-foreground font-medium">Confirm Password <span className="text-red-500">*</span></Label>
-                  <Input 
-                    id="confirm-password" 
-                    type="password"
-                    placeholder=""
-                    value={signupConfirmPassword}
-                    onChange={(e) => setSignupConfirmPassword(e.target.value)}
-                    required
-                    className="bg-white/50 border-white/30"
-                  />
+                  <div className="relative">
+                    <Input 
+                      id="confirm-password" 
+                      type={showSignupConfirmPassword ? "text" : "password"}
+                      placeholder=""
+                      value={signupConfirmPassword}
+                      onChange={(e) => setSignupConfirmPassword(e.target.value)}
+                      required
+                      className="bg-white/50 border-white/30 pr-10"
+                    />
+                    <button 
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      onClick={() => setShowSignupConfirmPassword(!showSignupConfirmPassword)}
+                    >
+                      {showSignupConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
                 </div>
               </CardContent>
               <CardFooter>
