@@ -65,7 +65,7 @@ const Login = () => {
     <div 
       className="min-h-screen flex items-center justify-center p-4"
       style={{
-        backgroundImage: `url('/lovable-uploads/e1c1d0f9-c70c-4c83-a901-41bec3bcc4e8.png')`,
+        backgroundImage: `url('/lovable-uploads/7837af48-727b-4a7f-83dd-54c5752ba9be.png')`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
