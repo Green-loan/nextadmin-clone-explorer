@@ -4,9 +4,11 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Check, Clock, Trophy } from 'lucide-react';
+import { Check, Clock, Eye, Trophy } from 'lucide-react';
 import { getApprovedLoans } from '@/lib/supabase-utils';
+import LoanDetailsSheet from './LoanDetailsSheet';
 
 interface LoanProps {
   id: string;
@@ -44,6 +46,8 @@ const getBestClients = (loans: LoanProps[]) => {
 const RecentSales = () => {
   const [filter, setFilter] = useState<string>('all');
   const [mounted, setMounted] = useState(false);
+  const [selectedLoan, setSelectedLoan] = useState<any>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const { data: approvedLoans = [], isLoading } = useQuery({
     queryKey: ['approvedLoans'],
@@ -78,6 +82,13 @@ const RecentSales = () => {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleViewLoan = (loan: any) => {
+    // Find the original loan object with all details
+    const originalLoan = approvedLoans.find((l: any) => l.id === loan.id);
+    setSelectedLoan(originalLoan);
+    setIsDetailsOpen(true);
+  };
 
   if (!mounted) return null;
 
@@ -139,33 +150,44 @@ const RecentSales = () => {
                         <p className="text-xs text-muted-foreground">{loan.email}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="flex items-center justify-end space-x-2">
-                        <p className={`text-sm font-medium ${loan.status ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
-                          {loan.status ? '+' : ''}R{parseFloat(loan.totalReturn).toFixed(2)}
-                        </p>
-                        <Badge 
-                          variant={loan.status ? 'outline' : 'secondary'}
-                          className={`
-                            ml-2 
-                            ${loan.status 
-                              ? 'bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400 hover:bg-green-100' 
-                              : 'bg-orange-100 text-orange-800 dark:bg-orange-800/20 dark:text-orange-400 hover:bg-orange-100'}
-                          `}
-                        >
-                          {loan.status ? (
-                            <Check className="h-3.5 w-3.5 mr-1" />
-                          ) : (
-                            <Clock className="h-3.5 w-3.5 mr-1" />
-                          )}
-                          {loan.status ? 'Paid' : 'Pending'}
-                        </Badge>
+                    <div className="flex items-center space-x-3">
+                      <div className="text-right">
+                        <div className="flex items-center justify-end space-x-2">
+                          <p className={`text-sm font-medium ${loan.status ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
+                            {loan.status ? '+' : ''}R{parseFloat(loan.totalReturn).toFixed(2)}
+                          </p>
+                          <Badge 
+                            variant={loan.status ? 'outline' : 'secondary'}
+                            className={`
+                              ml-2 
+                              ${loan.status 
+                                ? 'bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400 hover:bg-green-100' 
+                                : 'bg-orange-100 text-orange-800 dark:bg-orange-800/20 dark:text-orange-400 hover:bg-orange-100'}
+                            `}
+                          >
+                            {loan.status ? (
+                              <Check className="h-3.5 w-3.5 mr-1" />
+                            ) : (
+                              <Clock className="h-3.5 w-3.5 mr-1" />
+                            )}
+                            {loan.status ? 'Paid' : 'Pending'}
+                          </Badge>
+                        </div>
+                        {loan.dueDate && !loan.status && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Due: {new Date(loan.dueDate).toLocaleDateString()}
+                          </p>
+                        )}
                       </div>
-                      {loan.dueDate && !loan.status && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Due: {new Date(loan.dueDate).toLocaleDateString()}
-                        </p>
-                      )}
+                      <Button 
+                        size="sm" 
+                        variant="ghost"
+                        className="h-8 w-8 p-0"
+                        onClick={() => handleViewLoan(loan)}
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span className="sr-only">View details</span>
+                      </Button>
                     </div>
                   </div>
                 ))
@@ -208,6 +230,15 @@ const RecentSales = () => {
           </>
         )}
       </CardContent>
+
+      {/* Loan Details Sheet */}
+      {selectedLoan && (
+        <LoanDetailsSheet 
+          isOpen={isDetailsOpen} 
+          onClose={() => setIsDetailsOpen(false)} 
+          loan={selectedLoan} 
+        />
+      )}
     </Card>
   );
 };
