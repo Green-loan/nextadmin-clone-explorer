@@ -44,12 +44,21 @@ const Login = () => {
       return;
     }
     
+    if (isSigningIn) {
+      return; // Prevent multiple submissions
+    }
+    
     try {
       setIsSigningIn(true);
+      const toastId = toast.loading("Logging in...");
+      
       await signIn(loginEmail, loginPassword);
+      
+      toast.dismiss(toastId);
       navigate("/");
     } catch (error) {
       console.error("Login failed:", error);
+      // Error toast is already shown in the useAuth hook
     } finally {
       setIsSigningIn(false);
     }
@@ -171,9 +180,9 @@ const Login = () => {
                 <Button 
                   type="submit" 
                   className="w-full bg-green-600 hover:bg-green-700" 
-                  disabled={isLoading}
+                  disabled={isSigningIn || isLoading}
                 >
-                  {isLoading ? "Logging in..." : "Login"}
+                  {isSigningIn ? "Logging in..." : "Login"}
                 </Button>
               </CardFooter>
             </form>

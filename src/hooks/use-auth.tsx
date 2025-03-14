@@ -144,13 +144,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signIn = async (email: string, password: string) => {
     try {
       setIsLoading(true);
+      console.log("Starting login process for email:", email);
+      
+      // Step 1: Check if user exists in the database and is confirmed
+      const { data: userProfile, error: profileError } = await supabase
+        .from("users_account")
+        .select("*")
+        .eq("email", email)
+        .single();
+      
+      if (profileError) {
+        if (profileError.code === "PGRST116") {
+          console.error("User profile not found:", profileError);
+          throw new Error("User account not found. Please check your email or sign up for a new account.");
+        }
+        console.error("Error fetching user profile:", profileError);
+        throw new Error("Error while verifying user account. Please try again later.");
+      }
+      
+      // Step 2: Check if the user is confirmed
+      if (!userProfile.confirmed) {
+        console.error("User account not confirmed");
+        throw new Error("Please verify your email before logging in. Check your inbox for a verification link.");
+      }
+      
+      console.log("User profile found and confirmed, proceeding with auth login");
+      
+      // Step 3: Proceed with Supabase authentication
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error("Auth login error:", error);
+        throw error;
+      }
       
+      console.log("Login successful");
       toast.success("Login successful!");
     } catch (error) {
       console.error("Login error:", error);
