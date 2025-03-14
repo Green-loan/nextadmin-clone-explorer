@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -58,7 +57,7 @@ const Login = () => {
       navigate("/");
     } catch (error) {
       console.error("Login failed:", error);
-      // Error toast is already shown in the useAuth hook
+      // We don't need to show an error toast here as it's already shown in the useAuth hook
     } finally {
       setIsSigningIn(false);
     }

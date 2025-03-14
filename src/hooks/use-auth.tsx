@@ -162,7 +162,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error("Error while verifying user account. Please try again later.");
       }
       
-      // Step 2: Check if the user is confirmed
+      // Step 2: Check if the user is confirmed - this is the key part we're concerned with
       if (!userProfile.confirmed) {
         console.error("User account not confirmed");
         throw new Error("Please verify your email before logging in. Check your inbox for a verification link.");
