@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import Logo from "@/components/ui/logo";
+import ThreeBackground from "@/components/ui/ThreeBackground";
 
 const ForgotPassword = () => {
   const navigate = useNavigate();
@@ -43,15 +44,9 @@ const ForgotPassword = () => {
   };
   
   return (
-    <div 
-      className="min-h-screen flex items-center justify-center p-4"
-      style={{
-        backgroundImage: `url('/lovable-uploads/7837af48-727b-4a7f-83dd-54c5752ba9be.png')`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat'
-      }}
-    >
+    <div className="min-h-screen flex items-center justify-center p-4">
+      <ThreeBackground />
+      
       <Card className="w-full max-w-md shadow-lg bg-white/90 backdrop-blur-sm">
         <CardHeader className="space-y-1 flex flex-col items-center">
           <Logo size="lg" />
