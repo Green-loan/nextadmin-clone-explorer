@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -67,9 +68,13 @@ const Login = () => {
       return;
     }
     
+    if (isSigningUp) {
+      return; // Prevent multiple submissions
+    }
+    
     try {
       setIsSigningUp(true);
-      toast.loading("Creating your account...");
+      const toastId = toast.loading("Creating your account...");
       
       await signUp(
         signupEmail, 
@@ -80,7 +85,7 @@ const Login = () => {
         signupCellphone
       );
       
-      toast.dismiss();
+      toast.dismiss(toastId);
       
       // Reset form fields after successful signup
       setSignupEmail("");
@@ -96,7 +101,6 @@ const Login = () => {
       
       toast.success("Account created! Please check your email to verify your account.");
     } catch (error) {
-      toast.dismiss();
       console.error("Signup error in form:", error);
       toast.error(error instanceof Error ? error.message : "Failed to create account");
     } finally {

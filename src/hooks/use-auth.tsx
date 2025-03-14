@@ -166,10 +166,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true);
       
+      console.log("Starting signup process with email:", email);
+      
       // Step 1: Create auth user first
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: window.location.origin + '/login'
+        }
       });
       
       if (authError) {
@@ -181,7 +186,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error("Failed to create auth user");
       }
       
-      console.log("Auth user created:", authData.user);
+      console.log("Auth user created successfully:", authData.user.id);
       
       // Step 2: Generate user number
       const { count, error: countError } = await supabase
@@ -194,50 +199,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       
       const userNumber = `#${(count || 0) + 1}`;
+      console.log("Generated user number:", userNumber);
       
       // Step 3: Encrypt the password 
       const { encryptedPass, salt } = await encryptPassword(password);
       
       // Step 4: Insert into users_account table
-      const { error: profileError } = await supabase.from("users_account").insert([
-        {
-          id: authData.user.id, // Use the auth user ID to link the accounts
-          email: email,
-          full_names: fullName,
-          gender: gender,
-          home_address: homeAddress || null,
-          cellphone: cellphone,
-          user_number: userNumber,
-          role: 3, // Default user role
-          encryptedPass: encryptedPass,
-          salt: salt,
-          confirmed: false,
-          date_of_birth: null, // Default null
-        },
-      ]);
+      const insertData = {
+        id: authData.user.id,
+        email: email,
+        full_names: fullName,
+        gender: gender,
+        home_address: homeAddress || null,
+        cellphone: cellphone,
+        user_number: userNumber,
+        role: 3,
+        encryptedPass: encryptedPass,
+        salt: salt,
+        confirmed: false,
+        date_of_birth: null,
+        profile_picture: null
+      };
+      
+      console.log("Inserting user profile data:", insertData);
+      
+      const { error: profileError } = await supabase
+        .from("users_account")
+        .insert([insertData]);
       
       if (profileError) {
         console.error("Profile insert error:", profileError);
         
-        // If profile insertion fails, delete the auth user
-        if (authData.user) {
-          try {
-            // Note: normal users can't use admin.deleteUser, so we'll sign out instead
-            await supabase.auth.signOut();
-            console.log("Signed out auth user after profile insert failure");
-          } catch (deleteError) {
-            console.error("Failed to sign out auth user:", deleteError);
-          }
+        // If profile insertion fails, sign out the auth user
+        try {
+          await supabase.auth.signOut();
+          console.log("Signed out auth user after profile insert failure");
+        } catch (deleteError) {
+          console.error("Failed to sign out auth user:", deleteError);
         }
         
-        throw profileError;
+        throw new Error(`Failed to create user profile: ${profileError.message}`);
       }
       
       console.log("User profile created successfully");
-      toast.success("Account created successfully! Please check your email to verify your account.");
+      console.log("Signup completed successfully");
     } catch (error) {
       console.error("Signup error:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to create account");
       throw error;
     } finally {
       setIsLoading(false);
