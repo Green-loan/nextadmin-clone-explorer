@@ -24,7 +24,7 @@ const ThreeBackground: React.FC = () => {
     
     // Create particle system
     const particlesGeometry = new THREE.BufferGeometry();
-    const particlesCount = 1000; // Reduced particle count for less visual noise
+    const particlesCount = 2000;
     
     const posArray = new Float32Array(particlesCount * 3);
     
@@ -37,10 +37,10 @@ const ThreeBackground: React.FC = () => {
     
     // Create material
     const particlesMaterial = new THREE.PointsMaterial({
-      size: 0.12,
+      size: 0.15,
       color: 0x27ae60, // Green to match theme
       transparent: true,
-      opacity: 0.6, // Reduced opacity
+      opacity: 0.8,
     });
     
     // Create particle mesh
@@ -72,12 +72,12 @@ const ThreeBackground: React.FC = () => {
       requestAnimationFrame(animate);
       
       // Rotate particles
-      particlesMesh.rotation.x += 0.0003; // Slowed down rotation
-      particlesMesh.rotation.y += 0.0003;
+      particlesMesh.rotation.x += 0.0005;
+      particlesMesh.rotation.y += 0.0005;
       
       // Responsive to mouse movement
-      particlesMesh.rotation.x += mouseY * 0.0003;
-      particlesMesh.rotation.y += mouseX * 0.0003;
+      particlesMesh.rotation.x += mouseY * 0.0005;
+      particlesMesh.rotation.y += mouseX * 0.0005;
       
       renderer.render(scene, camera);
     };
@@ -102,7 +102,7 @@ const ThreeBackground: React.FC = () => {
   return (
     <div 
       ref={containerRef} 
-      className="fixed inset-0 -z-10 bg-gradient-to-b from-gray-50 to-gray-200"
+      className="fixed inset-0 -z-10 bg-gradient-to-b from-gray-900 to-gray-800"
     />
   );
 };

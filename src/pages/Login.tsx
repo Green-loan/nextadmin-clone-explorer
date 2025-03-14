@@ -66,24 +66,24 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center p-4">
       <ThreeBackground />
       
-      <Card className="w-full max-w-md shadow-lg bg-white/70 backdrop-blur-md border border-white/50">
+      <Card className="w-full max-w-md shadow-lg bg-white/30 backdrop-blur-md border border-white/20">
         <CardHeader className="space-y-1 flex flex-col items-center">
           <Logo size="lg" />
-          <CardDescription className="text-center mt-2 text-gray-800 font-medium">
+          <CardDescription className="text-center mt-2 text-foreground font-medium">
             Enter your credentials to access your account
           </CardDescription>
         </CardHeader>
         <Tabs defaultValue="login" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 bg-white/50">
-            <TabsTrigger value="login" className="data-[state=active]:bg-white/80 text-gray-800">Login</TabsTrigger>
-            <TabsTrigger value="signup" className="data-[state=active]:bg-white/80 text-gray-800">Sign Up</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 bg-white/20">
+            <TabsTrigger value="login" className="data-[state=active]:bg-white/30">Login</TabsTrigger>
+            <TabsTrigger value="signup" className="data-[state=active]:bg-white/30">Sign Up</TabsTrigger>
           </TabsList>
           
           <TabsContent value="login">
             <form onSubmit={handleLogin}>
               <CardContent className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-gray-900 font-medium">Email</Label>
+                  <Label htmlFor="email" className="text-foreground font-medium">Email</Label>
                   <Input 
                     id="email" 
                     type="email" 
@@ -91,12 +91,12 @@ const Login = () => {
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
                     required
-                    className="bg-white/90 border-gray-300"
+                    className="bg-white/50 border-white/30"
                   />
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <Label htmlFor="password" className="text-gray-900 font-medium">Password</Label>
+                    <Label htmlFor="password" className="text-foreground font-medium">Password</Label>
                     <Link to="/forgot-password" className="text-sm text-green-700 hover:text-green-800 font-medium">
                       Forgot password?
                     </Link>
@@ -108,14 +108,14 @@ const Login = () => {
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     required
-                    className="bg-white/90 border-gray-300"
+                    className="bg-white/50 border-white/30"
                   />
                 </div>
               </CardContent>
               <CardFooter>
                 <Button 
                   type="submit" 
-                  className="w-full bg-green-600 hover:bg-green-700 text-white font-medium" 
+                  className="w-full bg-green-600 hover:bg-green-700" 
                   disabled={isLoading}
                 >
                   {isLoading ? "Logging in..." : "Login"}
@@ -128,18 +128,18 @@ const Login = () => {
             <form onSubmit={handleSignup}>
               <CardContent className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="full-name" className="text-gray-900 font-medium">Full Name</Label>
+                  <Label htmlFor="full-name" className="text-foreground font-medium">Full Name</Label>
                   <Input 
                     id="full-name" 
                     placeholder=""
                     value={signupFullName}
                     onChange={(e) => setSignupFullName(e.target.value)}
                     required
-                    className="bg-white/90 border-gray-300"
+                    className="bg-white/50 border-white/30"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email" className="text-gray-900 font-medium">Email</Label>
+                  <Label htmlFor="signup-email" className="text-foreground font-medium">Email</Label>
                   <Input 
                     id="signup-email" 
                     type="email" 
@@ -147,11 +147,11 @@ const Login = () => {
                     value={signupEmail}
                     onChange={(e) => setSignupEmail(e.target.value)}
                     required
-                    className="bg-white/90 border-gray-300"
+                    className="bg-white/50 border-white/30"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password" className="text-gray-900 font-medium">Password</Label>
+                  <Label htmlFor="signup-password" className="text-foreground font-medium">Password</Label>
                   <Input 
                     id="signup-password" 
                     type="password"
@@ -159,11 +159,11 @@ const Login = () => {
                     value={signupPassword}
                     onChange={(e) => setSignupPassword(e.target.value)}
                     required
-                    className="bg-white/90 border-gray-300"
+                    className="bg-white/50 border-white/30"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="confirm-password" className="text-gray-900 font-medium">Confirm Password</Label>
+                  <Label htmlFor="confirm-password" className="text-foreground font-medium">Confirm Password</Label>
                   <Input 
                     id="confirm-password" 
                     type="password"
@@ -171,14 +171,14 @@ const Login = () => {
                     value={signupConfirmPassword}
                     onChange={(e) => setSignupConfirmPassword(e.target.value)}
                     required
-                    className="bg-white/90 border-gray-300"
+                    className="bg-white/50 border-white/30"
                   />
                 </div>
               </CardContent>
               <CardFooter>
                 <Button 
                   type="submit" 
-                  className="w-full bg-green-600 hover:bg-green-700 text-white font-medium" 
+                  className="w-full bg-green-600 hover:bg-green-700" 
                   disabled={isLoading}
                 >
                   {isLoading ? "Creating Account..." : "Create Account"}
