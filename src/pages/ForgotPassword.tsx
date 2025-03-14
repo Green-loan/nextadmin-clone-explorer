@@ -47,11 +47,11 @@ const ForgotPassword = () => {
     <div className="min-h-screen flex items-center justify-center p-4">
       <ThreeBackground />
       
-      <Card className="w-full max-w-md shadow-lg bg-white/90 backdrop-blur-sm">
+      <Card className="w-full max-w-md shadow-lg bg-white/30 backdrop-blur-md border border-white/20">
         <CardHeader className="space-y-1 flex flex-col items-center">
           <Logo size="lg" />
           <CardTitle className="text-2xl mt-2">Reset Password</CardTitle>
-          <CardDescription className="text-center">
+          <CardDescription className="text-center text-foreground font-medium">
             {resetSent ? "Check your email for reset instructions" : "Enter your email to receive reset instructions"}
           </CardDescription>
         </CardHeader>
@@ -60,7 +60,7 @@ const ForgotPassword = () => {
           <CardContent className="space-y-4 pt-4">
             {!resetSent ? (
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-foreground font-medium">Email</Label>
                 <Input 
                   id="email" 
                   type="email" 
@@ -68,10 +68,11 @@ const ForgotPassword = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder=""
                   required
+                  className="bg-white/50 border-white/30"
                 />
               </div>
             ) : (
-              <div className="bg-green-50 p-4 rounded-md text-green-800 text-center">
+              <div className="bg-green-50/70 backdrop-blur-sm p-4 rounded-md text-green-800 text-center">
                 Password reset link has been sent to your email.
               </div>
             )}
@@ -96,7 +97,7 @@ const ForgotPassword = () => {
               </Button>
             )}
             
-            <Link to="/login" className="text-sm text-green-600 hover:text-green-800 text-center">
+            <Link to="/login" className="text-sm text-green-700 hover:text-green-800 text-center font-medium">
               Back to Login
             </Link>
           </CardFooter>
