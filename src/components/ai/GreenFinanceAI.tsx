@@ -1,24 +1,26 @@
 
 import { useState, useRef, useEffect } from 'react';
-import { Bot, SendIcon, Zap, MoonStar, Sparkles } from 'lucide-react';
+import { Bot, SendIcon, ArrowLeft, FileImage, Paperclip, Mic } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Card } from '@/components/ui/card';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { pipeline } from '@huggingface/transformers';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
+  timestamp: string;
 }
 
 const INITIAL_MESSAGE: Message = {
   role: 'assistant',
-  content: 'Hello! I\'m your Green Finance AI assistant. I can help you with information about loans, financial advice, and suggestions to improve your business. How can I assist you today?'
+  content: 'Hello! I\'m your Green Finance AI assistant. I can help you with information about loans, financial advice, and sustainable business ideas. How can I assist you today?',
+  timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 };
 
-// Fallback responses about finance if the model isn't loaded
+// Fallback responses about green finance if the model isn't loaded
 const FALLBACK_RESPONSES = [
   "Based on your loan history, I recommend considering a green energy loan for solar panels. They typically have lower interest rates and could reduce your operating costs.",
   "Looking at the current market trends, green finance investments are showing promising growth. Would you like me to provide more specific data?",
@@ -32,6 +34,8 @@ export function GreenFinanceAI() {
   const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [model, setModel] = useState<any>(null);
+  const [modelLoading, setModelLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -40,28 +44,73 @@ export function GreenFinanceAI() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Load AI model
+  useEffect(() => {
+    const loadModel = async () => {
+      if (!model && open) {
+        try {
+          setModelLoading(true);
+          // Load a small text generation model
+          const textGenerator = await pipeline('text-generation', 'Xenova/distilgpt2');
+          setModel(textGenerator);
+        } catch (error) {
+          console.error("Error loading model:", error);
+          toast({
+            title: "Model Loading Failed",
+            description: "Using fallback responses instead.",
+            variant: "destructive"
+          });
+        } finally {
+          setModelLoading(false);
+        }
+      }
+    };
+
+    loadModel();
+  }, [open, model, toast]);
+
   // Handle sending a message
   const handleSendMessage = async () => {
     if (!input.trim()) return;
     
     // Add user message to chat
-    const userMessage: Message = { role: 'user', content: input };
+    const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const userMessage: Message = { role: 'user', content: input, timestamp: currentTime };
     setMessages(prev => [...prev, userMessage]);
     setInput('');
     setIsLoading(true);
     
     try {
-      // Simple timeout to simulate AI processing
-      setTimeout(() => {
-        // Choose a random fallback response
-        const aiResponse: Message = { 
-          role: 'assistant', 
-          content: FALLBACK_RESPONSES[Math.floor(Math.random() * FALLBACK_RESPONSES.length)]
-        };
+      let aiResponse: string;
+      
+      if (model) {
+        // Generate response with model
+        const result = await model(input, {
+          max_length: 50,
+          temperature: 0.7,
+        });
+        aiResponse = result[0].generated_text.replace(input, '').trim();
         
-        setMessages(prev => [...prev, aiResponse]);
+        // If the AI response is too short or empty, use fallback
+        if (!aiResponse || aiResponse.length < 10) {
+          aiResponse = FALLBACK_RESPONSES[Math.floor(Math.random() * FALLBACK_RESPONSES.length)];
+        }
+      } else {
+        // Use fallback response if model is not loaded
+        aiResponse = FALLBACK_RESPONSES[Math.floor(Math.random() * FALLBACK_RESPONSES.length)];
+      }
+      
+      // Add AI response to chat with slight delay to simulate typing
+      setTimeout(() => {
+        const assistantMessage: Message = { 
+          role: 'assistant', 
+          content: aiResponse,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        setMessages(prev => [...prev, assistantMessage]);
         setIsLoading(false);
       }, 1000);
+      
     } catch (error) {
       console.error("Error generating response:", error);
       toast({
@@ -71,11 +120,12 @@ export function GreenFinanceAI() {
       });
       
       // Add fallback response
-      const aiResponse: Message = { 
+      const assistantMessage: Message = { 
         role: 'assistant', 
-        content: "I apologize, but I'm having trouble processing your request right now. Could you please try again later?"
+        content: "I apologize, but I'm having trouble processing your request right now. Could you please try again later?",
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
-      setMessages(prev => [...prev, aiResponse]);
+      setMessages(prev => [...prev, assistantMessage]);
       setIsLoading(false);
     }
   };
@@ -91,29 +141,39 @@ export function GreenFinanceAI() {
       {/* Floating button */}
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 p-4 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-600 text-white shadow-lg hover:shadow-emerald-500/30 transition-all duration-300 z-50 flex items-center justify-center group"
+        className="fixed bottom-6 right-6 p-4 rounded-full bg-green-500 text-white shadow-lg hover:shadow-green-500/30 transition-all duration-300 z-50 flex items-center justify-center"
         aria-label="Open AI Assistant"
       >
-        <div className="absolute inset-0 rounded-full bg-white/10 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-        <Zap size={24} className="relative z-10" />
+        <Bot size={24} />
       </button>
 
-      {/* AI Assistant Dialog */}
+      {/* WhatsApp-style Chat Dialog */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[380px] h-[460px] flex flex-col p-0 gap-0 border border-emerald-400/20 bg-gradient-to-b from-slate-900 to-slate-950 text-slate-100 shadow-xl shadow-emerald-700/10 rounded-xl overflow-hidden">
-          <DialogHeader className="p-3 bg-gradient-to-r from-emerald-600 to-green-700 border-b border-emerald-500/30">
-            <DialogTitle className="flex items-center gap-2 text-base text-white font-medium">
-              <div className="relative">
-                <Bot className="text-white" size={18} />
-                <span className="absolute -bottom-1 -right-1 w-2 h-2 bg-emerald-300 rounded-full animate-pulse"></span>
+        <DialogContent className="sm:max-w-[360px] h-[520px] flex flex-col p-0 gap-0 border-0 bg-white text-slate-900 shadow-xl rounded-lg overflow-hidden">
+          {/* WhatsApp-style header */}
+          <div className="p-2 bg-green-500 text-white flex items-center gap-2 sticky top-0 z-10">
+            <Button variant="ghost" size="icon" className="text-white hover:bg-green-600" onClick={() => setOpen(false)}>
+              <ArrowLeft size={20} />
+            </Button>
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-full bg-green-700 flex items-center justify-center">
+                <Bot size={20} />
               </div>
-              Green Finance AI
-              <Sparkles size={14} className="ml-auto text-green-300 opacity-70" />
-            </DialogTitle>
-          </DialogHeader>
+              <div>
+                <h2 className="text-sm font-semibold">Green Finance Assistant</h2>
+                <p className="text-xs opacity-90">{isLoading ? "Typing..." : "Online"}</p>
+              </div>
+            </div>
+          </div>
           
-          {/* Messages container */}
-          <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-gradient-to-br from-slate-900/90 to-slate-950/90 backdrop-blur">
+          {/* WhatsApp-style chat background */}
+          <div 
+            className="flex-1 overflow-y-auto py-2 px-3 space-y-2 bg-slate-100 bg-opacity-90" 
+            style={{ 
+              backgroundImage: "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABmJLR0QA/wD/AP+gvaeTAAAA+UlEQVQ4y2OUVdL9z0ABYKJUM8xQRgYGBoZ3bz8xbFy9imHd8iUMDAwMDGfPnmVgYGBgkJJXwKqm8cIuBm1LZ7BahnfvPjEwMDAwrF+9imHVkkUMDAwMDOfOnmVgYGBgEJdRxKpp1pGdDDbuARQ7ioGBgeHPnz8MDAwMDNKKGljVNF/YycBu6cbwl4GBgYGBgYEB7EBJeSWsmuYe2cXAauQIV8TAwMDw4+NbBgYGBgZ55XysmtYf28nAoO/KwMzMxMDAwMAADjRZJW2smlYc3MkgpGPPwMTEyMDAwMAAjjlpRS2smlYd3skgpevIwMjICHcUw/PbFxjJ9iHFgAFvPF4DF9AccQAAAABJRU5ErkJggg==')",
+              backgroundRepeat: "repeat"
+            }}
+          >
             {messages.map((message, index) => (
               <div 
                 key={index} 
@@ -122,39 +182,53 @@ export function GreenFinanceAI() {
                   message.role === 'user' ? "justify-end" : "justify-start"
                 )}
               >
-                <Card 
+                <div 
                   className={cn(
-                    "max-w-[85%] p-3 text-sm shadow-md",
+                    "max-w-[75%] p-2 rounded-lg shadow-sm text-sm relative",
                     message.role === 'user' 
-                      ? "bg-gradient-to-r from-emerald-600 to-emerald-700 text-white border-0" 
-                      : "bg-slate-800/70 border border-slate-700/60 text-slate-100"
+                      ? "bg-green-100 text-slate-800 rounded-tr-none" 
+                      : "bg-white text-slate-800 rounded-tl-none"
                   )}
                 >
                   {message.content}
-                </Card>
+                  <div className="text-[10px] text-gray-500 text-right mt-1 mr-1">
+                    {message.timestamp}
+                    {message.role === 'user' && (
+                      <span className="ml-1 text-green-600">✓✓</span>
+                    )}
+                  </div>
+                </div>
               </div>
             ))}
             {isLoading && (
               <div className="flex justify-start">
-                <Card className="max-w-[85%] p-3 bg-slate-800/70 border border-slate-700/60 shadow-md">
+                <div className="max-w-[75%] p-3 bg-white rounded-lg rounded-tl-none shadow-sm">
                   <div className="flex space-x-1.5">
-                    <div className="h-2 w-2 bg-emerald-400 rounded-full animate-pulse" style={{ animationDelay: '0ms' }}></div>
-                    <div className="h-2 w-2 bg-emerald-400 rounded-full animate-pulse" style={{ animationDelay: '200ms' }}></div>
-                    <div className="h-2 w-2 bg-emerald-400 rounded-full animate-pulse" style={{ animationDelay: '400ms' }}></div>
+                    <div className="h-2 w-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0ms' }}></div>
+                    <div className="h-2 w-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '200ms' }}></div>
+                    <div className="h-2 w-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '400ms' }}></div>
                   </div>
-                </Card>
+                </div>
               </div>
             )}
             <div ref={messagesEndRef} />
           </div>
           
-          {/* Input form */}
-          <form onSubmit={handleSubmit} className="border-t border-slate-700/60 p-3 flex gap-2 bg-slate-800/70 backdrop-blur">
+          {/* WhatsApp-style input area */}
+          <form onSubmit={handleSubmit} className="border-t border-gray-200 p-2 flex gap-2 bg-gray-50">
+            <div className="flex items-center gap-2 text-gray-500">
+              <Button type="button" size="icon" variant="ghost" className="h-8 w-8 rounded-full">
+                <Paperclip size={18} />
+              </Button>
+              <Button type="button" size="icon" variant="ghost" className="h-8 w-8 rounded-full">
+                <FileImage size={18} />
+              </Button>
+            </div>
             <Textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask about loans, financing..."
-              className="resize-none min-h-[40px] text-sm py-2 bg-slate-700/50 border-slate-600/80 text-slate-200 placeholder:text-slate-400/70 focus-visible:ring-emerald-500/40"
+              placeholder="Type a message"
+              className="resize-none min-h-[40px] max-h-[80px] text-sm py-2 rounded-2xl bg-white border-gray-200 text-gray-700 focus-visible:ring-green-500/40"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
@@ -167,9 +241,13 @@ export function GreenFinanceAI() {
               type="submit" 
               size="icon" 
               disabled={isLoading || !input.trim()}
-              className="h-10 aspect-square bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 border-0 shadow-lg"
+              className="h-10 w-10 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-sm flex-shrink-0"
             >
-              <SendIcon size={16} className="mr-0.5 mt-0.5" />
+              {isLoading ? (
+                <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                <SendIcon size={16} />
+              )}
             </Button>
           </form>
         </DialogContent>
