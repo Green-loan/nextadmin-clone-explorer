@@ -5,7 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import StatCard from "@/components/dashboard/StatCard";
 import { useQuery } from "@tanstack/react-query";
 import { getLoanApplications, getApprovedLoans, getRejectedLoans } from "@/lib/supabase-utils";
-import { BarChart, LineChart, PieChart } from "@/components/ui/chart";
+import { BarChart } from "@/components/ui/bar-chart";
+import { LineChart } from "@/components/ui/line-chart";
+import { PieChart } from "@/components/ui/pie-chart";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   BarChart3, 
