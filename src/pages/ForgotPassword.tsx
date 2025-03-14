@@ -47,11 +47,11 @@ const ForgotPassword = () => {
     <div className="min-h-screen flex items-center justify-center p-4">
       <ThreeBackground />
       
-      <Card className="w-full max-w-md shadow-lg bg-white/30 backdrop-blur-md border border-white/20">
+      <Card className="w-full max-w-md shadow-lg bg-white/70 backdrop-blur-md border border-white/50">
         <CardHeader className="space-y-1 flex flex-col items-center">
           <Logo size="lg" />
-          <CardTitle className="text-2xl mt-2">Reset Password</CardTitle>
-          <CardDescription className="text-center text-foreground font-medium">
+          <CardTitle className="text-2xl mt-2 text-gray-900">Reset Password</CardTitle>
+          <CardDescription className="text-center text-gray-800 font-medium">
             {resetSent ? "Check your email for reset instructions" : "Enter your email to receive reset instructions"}
           </CardDescription>
         </CardHeader>
@@ -60,7 +60,7 @@ const ForgotPassword = () => {
           <CardContent className="space-y-4 pt-4">
             {!resetSent ? (
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-foreground font-medium">Email</Label>
+                <Label htmlFor="email" className="text-gray-900 font-medium">Email</Label>
                 <Input 
                   id="email" 
                   type="email" 
@@ -68,11 +68,11 @@ const ForgotPassword = () => {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder=""
                   required
-                  className="bg-white/50 border-white/30"
+                  className="bg-white/90 border-gray-300"
                 />
               </div>
             ) : (
-              <div className="bg-green-50/70 backdrop-blur-sm p-4 rounded-md text-green-800 text-center">
+              <div className="bg-green-100 p-4 rounded-md text-green-800 text-center font-medium">
                 Password reset link has been sent to your email.
               </div>
             )}
@@ -82,7 +82,7 @@ const ForgotPassword = () => {
             {!resetSent ? (
               <Button 
                 type="submit" 
-                className="w-full bg-green-600 hover:bg-green-700" 
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-medium" 
                 disabled={isLoading}
               >
                 {isLoading ? "Sending..." : "Send Reset Instructions"}
@@ -90,7 +90,7 @@ const ForgotPassword = () => {
             ) : (
               <Button 
                 type="button" 
-                className="w-full bg-green-600 hover:bg-green-700" 
+                className="w-full bg-green-600 hover:bg-green-700 text-white font-medium" 
                 onClick={() => navigate("/login")}
               >
                 Return to Login
