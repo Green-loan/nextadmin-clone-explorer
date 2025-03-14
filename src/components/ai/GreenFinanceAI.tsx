@@ -1,15 +1,15 @@
 
 import { useState, useRef, useEffect } from 'react';
-import { Bot, SendIcon, ArrowLeft, FileImage, Paperclip } from 'lucide-react';
+import { Bot, SendIcon, ArrowLeft, FileImage, Paperclip, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { env } from '@/lib/env';
+import { env, isOpenAIConfigured } from '@/lib/env';
 
 interface Message {
-  role: 'user' | 'assistant';
+  role: 'user' | 'assistant' | 'system';
   content: string;
   timestamp: string;
 }
@@ -18,6 +18,13 @@ const INITIAL_MESSAGE: Message = {
   role: 'assistant',
   content: 'Hello! I\'m your Green Finance AI assistant. I can help you with information about loans, financial advice, and sustainable business ideas. How can I assist you today?',
   timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+};
+
+// System message explaining the AI's role
+const SYSTEM_MESSAGE: Message = {
+  role: 'system',
+  content: 'You are a helpful Green Finance AI assistant. Your goal is to provide clear, accurate information about sustainable finance, green loans, and eco-friendly business practices. Keep responses concise and focused on financial topics.',
+  timestamp: ''
 };
 
 // Fallback responses about green finance if the model isn't loaded
@@ -34,6 +41,7 @@ export function GreenFinanceAI() {
   const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [apiKeyMissing, setApiKeyMissing] = useState(!isOpenAIConfigured());
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -54,24 +62,36 @@ export function GreenFinanceAI() {
     setIsLoading(true);
     
     try {
+      // Check if OpenAI API key is configured
+      if (!isOpenAIConfigured()) {
+        setApiKeyMissing(true);
+        throw new Error("OpenAI API key is not configured");
+      }
+      
       // Build conversation history for API request
-      const conversationHistory = messages.map(msg => ({
-        role: msg.role === 'user' ? 'Human' : 'Assistant',
+      const conversationHistory = [SYSTEM_MESSAGE];
+      
+      // Add previous messages (limited to last 10 for context window management)
+      const relevantMessages = messages.slice(-10).map(msg => ({
+        role: msg.role,
         content: msg.content
       }));
       
+      conversationHistory.push(...relevantMessages);
+      
       // Add current message
       conversationHistory.push({
-        role: 'Human',
+        role: 'user',
         content: input
       });
       
       // Call OpenAI API
+      console.log("Sending request to OpenAI API...");
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${env.OPENAI_API_KEY || 'sk-placeholder'}`
+          'Authorization': `Bearer ${env.OPENAI_API_KEY}`
         },
         body: JSON.stringify({
           model: 'gpt-4o-mini',
@@ -82,12 +102,17 @@ export function GreenFinanceAI() {
       });
       
       if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        console.error("OpenAI API error:", errorData);
+        throw new Error(`API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
       }
       
       const responseData = await response.json();
-      const aiResponse = responseData.choices[0]?.message?.content || 
-                        FALLBACK_RESPONSES[Math.floor(Math.random() * FALLBACK_RESPONSES.length)];
+      const aiResponse = responseData.choices[0]?.message?.content;
+      
+      if (!aiResponse) {
+        throw new Error("Empty response from API");
+      }
       
       // Add AI response to chat with slight delay to simulate typing
       setTimeout(() => {
@@ -98,15 +123,25 @@ export function GreenFinanceAI() {
         };
         setMessages(prev => [...prev, assistantMessage]);
         setIsLoading(false);
-      }, 1000);
+      }, 500);
       
     } catch (error) {
       console.error("Error generating response:", error);
-      toast({
-        title: "Error",
-        description: "Failed to get a response. Using fallback response.",
-        variant: "destructive"
-      });
+      
+      // Display appropriate error message based on the issue
+      if (apiKeyMissing) {
+        toast({
+          title: "API Key Missing",
+          description: "Please configure your OpenAI API key to enable AI responses.",
+          variant: "destructive"
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to get a response from the AI service. Using fallback.",
+          variant: "destructive"
+        });
+      }
       
       // Add fallback response
       const assistantMessage: Message = { 
@@ -151,11 +186,19 @@ export function GreenFinanceAI() {
               <div>
                 <h2 className="text-sm font-semibold">Green Finance Assistant</h2>
                 <p className="text-xs opacity-90">
-                  {isLoading ? "Typing..." : "Online"}
+                  {isLoading ? "Typing..." : apiKeyMissing ? "API Key Missing" : "Online"}
                 </p>
               </div>
             </div>
           </div>
+          
+          {/* API Key Warning Banner - shown only when the key is missing */}
+          {apiKeyMissing && (
+            <div className="bg-amber-50 border-l-4 border-amber-500 p-2 text-xs text-amber-800 flex items-center gap-2">
+              <AlertTriangle size={14} />
+              <span>OpenAI API key not configured. Using fallback responses.</span>
+            </div>
+          )}
           
           {/* Chat background with improved visuals */}
           <div 
