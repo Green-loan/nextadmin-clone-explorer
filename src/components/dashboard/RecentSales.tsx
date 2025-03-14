@@ -94,7 +94,7 @@ const RecentSales = () => {
 
   return (
     <Card className="col-span-3 hover-scale">
-      <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-2 sm:space-y-0 pb-2">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div>
           <CardTitle>Recent Loans</CardTitle>
           <CardDescription>
@@ -131,26 +131,26 @@ const RecentSales = () => {
                 filteredLoans.map((loan, index) => (
                   <div 
                     key={loan.id || index} 
-                    className="flex flex-col sm:flex-row sm:items-center justify-between sm:space-x-4 transition-all duration-200 hover:bg-muted/30 rounded-md p-2 -mx-2 gap-2 sm:gap-0"
+                    className="flex items-center justify-between space-x-4 transition-all duration-200 hover:bg-muted/30 rounded-md p-2 -mx-2"
                   >
-                    <div className="flex items-center space-x-4 min-w-0 flex-shrink">
-                      <Avatar className="h-9 w-9 flex-shrink-0">
+                    <div className="flex items-center space-x-4">
+                      <Avatar className="h-9 w-9">
                         <AvatarImage src={loan.image || "/placeholder.svg"} alt={loan.name} />
                         <AvatarFallback>
                           {loan.name.split(" ").map(n => n[0]).join("")}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium flex items-center truncate">
+                      <div>
+                        <p className="text-sm font-medium flex items-center">
                           {loan.name}
                           {bestClients.some(client => client.name === loan.name) && (
-                            <Trophy className="h-3.5 w-3.5 ml-1.5 text-yellow-500 flex-shrink-0" />
+                            <Trophy className="h-3.5 w-3.5 ml-1.5 text-yellow-500" />
                           )}
                         </p>
-                        <p className="text-xs text-muted-foreground truncate">{loan.email}</p>
+                        <p className="text-xs text-muted-foreground">{loan.email}</p>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between sm:justify-end space-x-3 flex-shrink-0">
+                    <div className="flex items-center space-x-3">
                       <div className="text-right">
                         <div className="flex items-center justify-end space-x-2">
                           <p className={`text-sm font-medium ${loan.status ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
@@ -159,7 +159,7 @@ const RecentSales = () => {
                           <Badge 
                             variant={loan.status ? 'outline' : 'secondary'}
                             className={`
-                              ml-2 whitespace-nowrap flex-shrink-0
+                              ml-2 
                               ${loan.status 
                                 ? 'bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400 hover:bg-green-100' 
                                 : 'bg-orange-100 text-orange-800 dark:bg-orange-800/20 dark:text-orange-400 hover:bg-orange-100'}
@@ -174,7 +174,7 @@ const RecentSales = () => {
                           </Badge>
                         </div>
                         {loan.dueDate && !loan.status && (
-                          <p className="text-xs text-muted-foreground mt-1 text-right">
+                          <p className="text-xs text-muted-foreground mt-1">
                             Due: {new Date(loan.dueDate).toLocaleDateString()}
                           </p>
                         )}
@@ -182,7 +182,7 @@ const RecentSales = () => {
                       <Button 
                         size="sm" 
                         variant="ghost"
-                        className="h-8 w-8 p-0 flex-shrink-0"
+                        className="h-8 w-8 p-0"
                         onClick={() => handleViewLoan(loan)}
                       >
                         <Eye className="h-4 w-4" />

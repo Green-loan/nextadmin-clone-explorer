@@ -22,43 +22,41 @@ const Overview = ({ chartData = [] }: OverviewProps) => {
   if (!mounted) return null;
 
   return (
-    <Card className="hover-scale">
-      <CardHeader className="pb-1 sm:pb-2">
-        <CardTitle className="text-base sm:text-lg md:text-xl">Revenue Overview</CardTitle>
-        <CardDescription className="text-xs sm:text-sm">Monthly revenue (in Rands) from loan returns</CardDescription>
+    <Card className="col-span-4 hover-scale">
+      <CardHeader className="pb-2">
+        <CardTitle>Revenue Overview</CardTitle>
+        <CardDescription>Monthly revenue (in Rands) from loan returns</CardDescription>
       </CardHeader>
-      <CardContent className="pt-1 sm:pt-2">
-        <div className="h-[200px] sm:h-[250px] md:h-[300px] w-full">
+      <CardContent className="pt-2">
+        <div className="h-[300px] w-full">
           {data.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart
                 data={data}
-                margin={{ top: 20, right: 5, left: 0, bottom: 0 }}
+                margin={{ top: 20, right: 0, left: 0, bottom: 0 }}
               >
                 <CartesianGrid strokeDasharray="3 3" strokeOpacity={0.2} vertical={false} />
                 <XAxis 
                   dataKey="name" 
                   tickLine={false}
                   axisLine={false}
-                  style={{ fontSize: '10px' }}
-                  tick={{ fontSize: 10 }}
-                  tickMargin={5}
+                  style={{ fontSize: '12px' }}
                 />
                 <YAxis 
                   tickLine={false}
                   axisLine={false}
-                  style={{ fontSize: '10px' }}
-                  tick={{ fontSize: 10 }}
+                  style={{ fontSize: '12px' }}
+                  // Format Y-axis labels with R prefix for Rands
                   tickFormatter={(value) => `R${value}`}
                 />
                 <Tooltip 
                   contentStyle={{ 
                     borderRadius: '8px',
                     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                    border: 'none',
-                    fontSize: '12px'
+                    border: 'none'
                   }}
                   cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
+                  // Format tooltip values with R prefix for Rands
                   formatter={(value) => [`R${value}`, 'Revenue']}
                 />
                 <Bar 
