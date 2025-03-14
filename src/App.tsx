@@ -7,6 +7,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Dashboard from "./pages/Index";
 import Users from "./pages/Users";
 import Settings from "./pages/Settings";
+import Reports from "./pages/Reports";
+import Analytics from "./pages/Analytics";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,9 +23,8 @@ const App = () => (
           <Route path="/" element={<Dashboard />} />
           <Route path="/users" element={<Users />} />
           <Route path="/settings" element={<Settings />} />
-          {/* Placeholder routes for future pages */}
-          <Route path="/analytics" element={<NotFound />} />
-          <Route path="/reports" element={<NotFound />} />
+          <Route path="/reports" element={<Reports />} />
+          <Route path="/analytics" element={<Analytics />} />
           {/* Catch-all for 404 */}
           <Route path="*" element={<NotFound />} />
         </Routes>
