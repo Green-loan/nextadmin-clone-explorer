@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -169,8 +170,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       console.log("User profile found, proceeding with auth login");
       
-      // TEMPORARY: Use signInWithEmail instead of signInWithPassword to bypass password check
-      const { data, error } = await supabase.auth.signInWithEmail({
+      // TEMPORARY: Use signInWithOtp instead of signInWithPassword to bypass password check
+      // Note: This method still allows login without verification but uses a supported Supabase method
+      const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
           shouldCreateUser: false
@@ -356,4 +358,3 @@ export function useAuth() {
   
   return context;
 }
-

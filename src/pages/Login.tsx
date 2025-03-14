@@ -55,6 +55,7 @@ const Login = () => {
       await signIn(loginEmail, loginPassword);
       
       toast.dismiss(toastId);
+      // Explicitly navigate to dashboard after successful login
       navigate("/");
     } catch (error) {
       console.error("Login failed:", error);
