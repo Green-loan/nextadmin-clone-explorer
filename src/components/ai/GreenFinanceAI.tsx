@@ -50,9 +50,22 @@ export function GreenFinanceAI() {
       if (!model && open) {
         try {
           setModelLoading(true);
-          // Load a small text generation model
-          const textGenerator = await pipeline('text-generation', 'Xenova/distilgpt2');
+          // Load the Phi-2 model (Q2_K quantized version)
+          const textGenerator = await pipeline(
+            'text-generation',
+            'microsoft/phi-2', // Using the base model ID, the pipeline will use the best available variant
+            { 
+              quantized: true,
+              revision: 'Q2_K',
+              device: 'webgpu' // Try to use WebGPU for better performance if available
+            }
+          );
           setModel(textGenerator);
+          toast({
+            title: "Phi-2 Model Loaded",
+            description: "Using Microsoft's Phi-2 language model for responses.",
+            variant: "default"
+          });
         } catch (error) {
           console.error("Error loading model:", error);
           toast({
@@ -84,17 +97,28 @@ export function GreenFinanceAI() {
       let aiResponse: string;
       
       if (model) {
-        // Generate response with model
+        // Generate response with Phi-2 model
         const result = await model(input, {
-          max_length: 50,
+          max_length: 100,
           temperature: 0.7,
+          top_p: 0.9,
+          repetition_penalty: 1.2,
         });
+        
+        // Extract the generated text and clean it up
         aiResponse = result[0].generated_text.replace(input, '').trim();
         
-        // If the AI response is too short or empty, use fallback
-        if (!aiResponse || aiResponse.length < 10) {
+        // Filter out any repeated or low-quality responses
+        if (!aiResponse || aiResponse.length < 10 || aiResponse.includes("[END]")) {
           aiResponse = FALLBACK_RESPONSES[Math.floor(Math.random() * FALLBACK_RESPONSES.length)];
         }
+        
+        // Sometimes the model generates extraneous tokens, clean them up
+        aiResponse = aiResponse
+          .split('\n')
+          .filter(line => line.trim().length > 0)
+          .join('\n')
+          .replace(/^[^a-zA-Z0-9]*/, '');
       } else {
         // Use fallback response if model is not loaded
         aiResponse = FALLBACK_RESPONSES[Math.floor(Math.random() * FALLBACK_RESPONSES.length)];
@@ -161,7 +185,9 @@ export function GreenFinanceAI() {
               </div>
               <div>
                 <h2 className="text-sm font-semibold">Green Finance Assistant</h2>
-                <p className="text-xs opacity-90">{isLoading ? "Typing..." : "Online"}</p>
+                <p className="text-xs opacity-90">
+                  {modelLoading ? "Loading Phi-2 model..." : isLoading ? "Typing..." : "Online"}
+                </p>
               </div>
             </div>
           </div>
@@ -242,15 +268,15 @@ export function GreenFinanceAI() {
                   handleSubmit(e);
                 }
               }}
-              disabled={isLoading}
+              disabled={isLoading || modelLoading}
             />
             <Button 
               type="submit" 
               size="icon" 
-              disabled={isLoading || !input.trim()}
+              disabled={isLoading || modelLoading || !input.trim()}
               className="h-10 w-10 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-sm flex-shrink-0 transition-all duration-200"
             >
-              {isLoading ? (
+              {isLoading || modelLoading ? (
                 <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
               ) : (
                 <SendIcon size={16} />
