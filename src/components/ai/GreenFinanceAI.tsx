@@ -1,6 +1,6 @@
 
 import { useState, useRef, useEffect } from 'react';
-import { Bot, SendIcon, ArrowLeft, FileImage, Paperclip, Mic } from 'lucide-react';
+import { Bot, SendIcon, ArrowLeft, FileImage, Paperclip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -151,13 +151,13 @@ export function GreenFinanceAI() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[360px] h-[520px] flex flex-col p-0 gap-0 border-0 bg-white text-slate-900 shadow-xl rounded-lg overflow-hidden">
           {/* WhatsApp-style header */}
-          <div className="p-2 bg-green-500 text-white flex items-center gap-2 sticky top-0 z-10">
-            <Button variant="ghost" size="icon" className="text-white hover:bg-green-600" onClick={() => setOpen(false)}>
+          <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white flex items-center gap-2 sticky top-0 z-10 shadow-md">
+            <Button variant="ghost" size="icon" className="text-white hover:bg-white/10" onClick={() => setOpen(false)}>
               <ArrowLeft size={20} />
             </Button>
             <div className="flex items-center gap-2">
-              <div className="w-9 h-9 rounded-full bg-green-700 flex items-center justify-center">
-                <Bot size={20} />
+              <div className="w-9 h-9 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-inner">
+                <Bot size={20} className="text-white" />
               </div>
               <div>
                 <h2 className="text-sm font-semibold">Green Finance Assistant</h2>
@@ -166,12 +166,15 @@ export function GreenFinanceAI() {
             </div>
           </div>
           
-          {/* WhatsApp-style chat background */}
+          {/* Chat background with improved visuals */}
           <div 
-            className="flex-1 overflow-y-auto py-2 px-3 space-y-2 bg-slate-100 bg-opacity-90" 
+            className="flex-1 overflow-y-auto py-2 px-3 space-y-2" 
             style={{ 
-              backgroundImage: "url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAABmJLR0QA/wD/AP+gvaeTAAAA+UlEQVQ4y2OUVdL9z0ABYKJUM8xQRgYGBoZ3bz8xbFy9imHd8iUMDAwMDGfPnmVgYGBgkJJXwKqm8cIuBm1LZ7BahnfvPjEwMDAwrF+9imHVkkUMDAwMDOfOnmVgYGBgEJdRxKpp1pGdDDbuARQ7ioGBgeHPnz8MDAwMDNKKGljVNF/YycBu6cbwl4GBgYGBgYEB7EBJeSWsmuYe2cXAauQIV8TAwMDw4+NbBgYGBgZ55XysmtYf28nAoO/KwMzMxMDAwMAADjRZJW2smlYc3MkgpGPPwMTEyMDAwMAAjjlpRS2smlYd3skgpevIwMjICHcUw/PbFxjJ9iHFgAFvPF4DF9AccQAAAABJRU5ErkJggg==')",
-              backgroundRepeat: "repeat"
+              background: "linear-gradient(109.6deg, rgba(223,234,247,1) 11.2%, rgba(244,248,252,1) 91.1%)",
+              backgroundSize: "cover",
+              backgroundAttachment: "fixed",
+              backgroundPosition: "center",
+              boxShadow: "inset 0 0 20px rgba(0,0,0,0.05)"
             }}
           >
             {messages.map((message, index) => (
@@ -186,15 +189,19 @@ export function GreenFinanceAI() {
                   className={cn(
                     "max-w-[75%] p-2 rounded-lg shadow-sm text-sm relative",
                     message.role === 'user' 
-                      ? "bg-green-100 text-slate-800 rounded-tr-none" 
-                      : "bg-white text-slate-800 rounded-tl-none"
+                      ? "bg-gradient-to-br from-green-400 to-green-500 text-white rounded-tr-none" 
+                      : "bg-white text-slate-800 rounded-tl-none shadow-md"
                   )}
                 >
                   {message.content}
-                  <div className="text-[10px] text-gray-500 text-right mt-1 mr-1">
+                  <div className="text-[10px] text-right mt-1 mr-1"
+                    style={{ 
+                      color: message.role === 'user' ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.5)' 
+                    }}
+                  >
                     {message.timestamp}
                     {message.role === 'user' && (
-                      <span className="ml-1 text-green-600">✓✓</span>
+                      <span className="ml-1 text-white">✓✓</span>
                     )}
                   </div>
                 </div>
@@ -202,11 +209,11 @@ export function GreenFinanceAI() {
             ))}
             {isLoading && (
               <div className="flex justify-start">
-                <div className="max-w-[75%] p-3 bg-white rounded-lg rounded-tl-none shadow-sm">
+                <div className="max-w-[75%] p-3 bg-white rounded-lg rounded-tl-none shadow-md">
                   <div className="flex space-x-1.5">
-                    <div className="h-2 w-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '0ms' }}></div>
-                    <div className="h-2 w-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '200ms' }}></div>
-                    <div className="h-2 w-2 bg-gray-400 rounded-full animate-pulse" style={{ animationDelay: '400ms' }}></div>
+                    <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse" style={{ animationDelay: '0ms' }}></div>
+                    <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse" style={{ animationDelay: '200ms' }}></div>
+                    <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse" style={{ animationDelay: '400ms' }}></div>
                   </div>
                 </div>
               </div>
@@ -214,13 +221,13 @@ export function GreenFinanceAI() {
             <div ref={messagesEndRef} />
           </div>
           
-          {/* WhatsApp-style input area */}
-          <form onSubmit={handleSubmit} className="border-t border-gray-200 p-2 flex gap-2 bg-gray-50">
+          {/* Input area with improved styling */}
+          <form onSubmit={handleSubmit} className="border-t border-gray-100 p-2 flex gap-2 bg-white shadow-md">
             <div className="flex items-center gap-2 text-gray-500">
-              <Button type="button" size="icon" variant="ghost" className="h-8 w-8 rounded-full">
+              <Button type="button" size="icon" variant="ghost" className="h-8 w-8 rounded-full text-green-500 hover:text-green-600 hover:bg-green-50">
                 <Paperclip size={18} />
               </Button>
-              <Button type="button" size="icon" variant="ghost" className="h-8 w-8 rounded-full">
+              <Button type="button" size="icon" variant="ghost" className="h-8 w-8 rounded-full text-green-500 hover:text-green-600 hover:bg-green-50">
                 <FileImage size={18} />
               </Button>
             </div>
@@ -228,7 +235,7 @@ export function GreenFinanceAI() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Type a message"
-              className="resize-none min-h-[40px] max-h-[80px] text-sm py-2 rounded-2xl bg-white border-gray-200 text-gray-700 focus-visible:ring-green-500/40"
+              className="resize-none min-h-[40px] max-h-[80px] text-sm py-2 rounded-2xl bg-gray-50 border-gray-200 focus-visible:ring-green-500/40 transition-all"
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
@@ -241,7 +248,7 @@ export function GreenFinanceAI() {
               type="submit" 
               size="icon" 
               disabled={isLoading || !input.trim()}
-              className="h-10 w-10 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-sm flex-shrink-0"
+              className="h-10 w-10 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-sm flex-shrink-0 transition-all duration-200"
             >
               {isLoading ? (
                 <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
