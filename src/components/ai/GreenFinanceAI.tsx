@@ -1,11 +1,12 @@
+
 import { useState, useRef, useEffect } from 'react';
-import { Bot, SendIcon, ArrowLeft, FileImage, Paperclip, AlertTriangle } from 'lucide-react';
+import { Bot, SendIcon, ArrowLeft, FileImage, Paperclip, Loader } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { env, isOpenAIConfigured } from '@/lib/env';
+import { pipeline } from '@huggingface/transformers';
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
@@ -40,14 +41,71 @@ export function GreenFinanceAI() {
   const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [apiKeyMissing, setApiKeyMissing] = useState(!isOpenAIConfigured());
+  const [modelLoading, setModelLoading] = useState(false);
+  const [model, setModel] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Load the model when the component mounts
+  useEffect(() => {
+    async function loadModel() {
+      if (!model && open) {
+        try {
+          setModelLoading(true);
+          console.log("Loading DeepSeek-R1-Zero model...");
+          
+          // Load the text generation pipeline with the DeepSeek model
+          const pipe = await pipeline(
+            "text-generation", 
+            "deepseek-ai/DeepSeek-R1-Zero", 
+            { 
+              quantized: true, // Use quantized model for better performance
+              progress_callback: (progress) => {
+                console.log(`Model loading progress: ${Math.round(progress * 100)}%`);
+              }
+            }
+          );
+          
+          setModel(pipe);
+          console.log("DeepSeek-R1-Zero model loaded successfully");
+          
+          toast({
+            title: "Model Loaded",
+            description: "DeepSeek-R1-Zero AI model is ready to use",
+          });
+        } catch (error) {
+          console.error("Error loading model:", error);
+          toast({
+            title: "Model Loading Error",
+            description: "Failed to load the AI model. Using fallback responses.",
+            variant: "destructive",
+          });
+        } finally {
+          setModelLoading(false);
+        }
+      }
+    }
+    
+    loadModel();
+    
+    // Cleanup when component unmounts
+    return () => {
+      // Any cleanup if needed
+    };
+  }, [open, model, toast]);
 
   // Scroll to bottom of messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Format messages for the DeepSeek model
+  const formatMessagesForModel = (messagesArray: Message[]) => {
+    return messagesArray.map(msg => ({
+      role: msg.role,
+      content: msg.content
+    }));
+  };
 
   // Handle sending a message
   const handleSendMessage = async () => {
@@ -61,61 +119,36 @@ export function GreenFinanceAI() {
     setIsLoading(true);
     
     try {
-      // Check if OpenAI API key is configured
-      if (!isOpenAIConfigured()) {
-        setApiKeyMissing(true);
-        throw new Error("OpenAI API key is not configured");
-      }
+      // Build conversation history (limit to last 8 messages to stay within context window)
+      const relevantMessages = [SYSTEM_MESSAGE, ...messages.slice(-7), userMessage];
+      const formattedMessages = formatMessagesForModel(relevantMessages);
       
-      // Build conversation history for API request
-      const conversationHistory = [SYSTEM_MESSAGE];
+      console.log("Sending request to model with messages:", formattedMessages);
       
-      // Add previous messages (limited to last 10 for context window management)
-      const relevantMessages = messages.slice(-10).map(msg => ({
-        role: msg.role,
-        content: msg.content,
-        timestamp: msg.timestamp
-      }));
+      let aiResponse = "";
       
-      conversationHistory.push(...relevantMessages);
-      
-      // Add current message
-      conversationHistory.push({
-        role: 'user',
-        content: input,
-        timestamp: currentTime
-      });
-      
-      // Call OpenAI API
-      console.log("Sending request to OpenAI API...");
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${env.OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: 'gpt-4o-mini',
-          messages: conversationHistory.map(msg => ({ role: msg.role, content: msg.content })),
+      if (model) {
+        // Generate response using the DeepSeek model
+        const result = await model(formattedMessages, {
+          max_new_tokens: 500,
           temperature: 0.7,
-          max_tokens: 500
-        })
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error("OpenAI API error:", errorData);
-        throw new Error(`API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+          top_p: 0.9,
+        });
+        
+        console.log("Model response:", result);
+        
+        // Extract the assistant's response from the model output
+        if (result && result[0] && result[0].generated_text) {
+          aiResponse = result[0].generated_text;
+        } else {
+          throw new Error("Unexpected model response format");
+        }
+      } else {
+        // If model isn't loaded yet, use fallback response
+        throw new Error("Model not loaded");
       }
       
-      const responseData = await response.json();
-      const aiResponse = responseData.choices[0]?.message?.content;
-      
-      if (!aiResponse) {
-        throw new Error("Empty response from API");
-      }
-      
-      // Add AI response to chat with slight delay to simulate typing
+      // Add AI response to chat
       setTimeout(() => {
         const assistantMessage: Message = { 
           role: 'assistant', 
@@ -129,20 +162,11 @@ export function GreenFinanceAI() {
     } catch (error) {
       console.error("Error generating response:", error);
       
-      // Display appropriate error message based on the issue
-      if (apiKeyMissing) {
-        toast({
-          title: "API Key Missing",
-          description: "Please configure your OpenAI API key to enable AI responses.",
-          variant: "destructive"
-        });
-      } else {
-        toast({
-          title: "Error",
-          description: "Failed to get a response from the AI service. Using fallback.",
-          variant: "destructive"
-        });
-      }
+      toast({
+        title: "Response Error",
+        description: "Failed to get a response from the AI model. Using fallback.",
+        variant: "destructive"
+      });
       
       // Add fallback response
       const assistantMessage: Message = { 
@@ -187,17 +211,17 @@ export function GreenFinanceAI() {
               <div>
                 <h2 className="text-sm font-semibold">Green Finance Assistant</h2>
                 <p className="text-xs opacity-90">
-                  {isLoading ? "Typing..." : apiKeyMissing ? "API Key Missing" : "Online"}
+                  {isLoading ? "Typing..." : modelLoading ? "Loading model..." : "Online"}
                 </p>
               </div>
             </div>
           </div>
           
-          {/* API Key Warning Banner - shown only when the key is missing */}
-          {apiKeyMissing && (
-            <div className="bg-amber-50 border-l-4 border-amber-500 p-2 text-xs text-amber-800 flex items-center gap-2">
-              <AlertTriangle size={14} />
-              <span>OpenAI API key not configured. Using fallback responses.</span>
+          {/* Model Loading Banner - shown only when the model is loading */}
+          {modelLoading && (
+            <div className="bg-blue-50 border-l-4 border-blue-500 p-2 text-xs text-blue-800 flex items-center gap-2">
+              <Loader size={14} className="animate-spin" />
+              <span>Loading DeepSeek-R1-Zero model. This may take a minute...</span>
             </div>
           )}
           
@@ -277,12 +301,12 @@ export function GreenFinanceAI() {
                   handleSubmit(e);
                 }
               }}
-              disabled={isLoading}
+              disabled={isLoading || modelLoading}
             />
             <Button 
               type="submit" 
               size="icon" 
-              disabled={isLoading || !input.trim()}
+              disabled={isLoading || modelLoading || !input.trim()}
               className="h-10 w-10 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-sm flex-shrink-0 transition-all duration-200"
             >
               {isLoading ? (

@@ -1,10 +1,11 @@
 
-// Default to empty strings for development
+// No API keys needed when using Hugging Face models in the browser
 export const env = {
+  // This is kept for backward compatibility but is no longer needed
   OPENAI_API_KEY: ''
 };
 
-// Helper function to check if OpenAI API key is configured
+// Always returns true since we're using local models now
 export const isOpenAIConfigured = () => {
-  return !!env.OPENAI_API_KEY && env.OPENAI_API_KEY !== 'sk-placeholder' && env.OPENAI_API_KEY.length > 20;
+  return true;
 };
