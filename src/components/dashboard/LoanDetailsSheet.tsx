@@ -17,9 +17,14 @@ interface LoanDetailsSheetProps {
 const LoanDetailsSheet = ({ isOpen, onClose, loan }: LoanDetailsSheetProps) => {
   if (!loan) return null;
 
-  const formatCurrency = (value: string) => {
-    return `R${parseFloat(value || '0').toFixed(2)}`;
+  const formatCurrency = (value: string | number) => {
+    // Handle case where the value might be a string with 'R' prefix or a number
+    const numValue = typeof value === 'string' ? parseFloat(value.replace(/R/g, '') || '0') : value;
+    return `R${numValue.toFixed(2)}`;
   };
+
+  // Ensure totalReturn is properly formatted
+  const totalReturn = loan.totalReturn || loan.amount;
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -37,14 +42,14 @@ const LoanDetailsSheet = ({ isOpen, onClose, loan }: LoanDetailsSheetProps) => {
             <Avatar className="h-14 w-14">
               <AvatarImage src={loan.image || "/placeholder.svg"} alt={loan.name} />
               <AvatarFallback className="text-lg">
-                {loan.name.split(" ").map((n: string) => n[0]).join("")}
+                {loan.name?.split(" ").map((n: string) => n[0]).join("") || "?"}
               </AvatarFallback>
             </Avatar>
             <div>
-              <h3 className="font-medium text-lg">{loan.name}</h3>
+              <h3 className="font-medium text-lg">{loan.name || "Unknown"}</h3>
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <Mail className="h-3.5 w-3.5" />
-                <span>{loan.email}</span>
+                <span>{loan.email || "No email"}</span>
               </div>
               {loan.phone && (
                 <div className="flex items-center space-x-2 text-sm text-muted-foreground">
@@ -85,7 +90,7 @@ const LoanDetailsSheet = ({ isOpen, onClose, loan }: LoanDetailsSheetProps) => {
                   <CreditCard className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">Loan Amount</span>
                 </div>
-                <span className="font-medium">{formatCurrency(loan.amount.replace('R', ''))}</span>
+                <span className="font-medium">{formatCurrency(loan.amount)}</span>
               </div>
               
               <div className="flex items-center justify-between">
@@ -93,16 +98,18 @@ const LoanDetailsSheet = ({ isOpen, onClose, loan }: LoanDetailsSheetProps) => {
                   <CreditCard className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">Total Return</span>
                 </div>
-                <span className="font-medium">{formatCurrency(loan.totalReturn)}</span>
+                <span className="font-medium">{formatCurrency(totalReturn)}</span>
               </div>
               
-              {loan.dueDate && !loan.status && (
+              {loan.due_date && !loan.status && (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Calendar className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">Due Date</span>
                   </div>
-                  <span className="font-medium">{new Date(loan.dueDate).toLocaleDateString()}</span>
+                  <span className="font-medium">
+                    {new Date(loan.due_date).toLocaleDateString()}
+                  </span>
                 </div>
               )}
             </CardContent>
