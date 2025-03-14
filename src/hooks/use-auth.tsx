@@ -199,12 +199,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       console.log("Starting signup process with email:", email);
       
-      // Step 1: Create auth user first
+      // Step 1: Create auth user with custom email template
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: window.location.origin + '/login'
+          emailRedirectTo: `${window.location.origin}/email-confirmation`,
+          data: {
+            full_name: fullName
+          }
         }
       });
       
@@ -274,6 +277,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       console.log("User profile created successfully");
       console.log("Signup completed successfully");
+      
+      // Success notification with instructions
+      toast.success("Account created! Please check your email to verify your account.", {
+        duration: 6000
+      });
+      
     } catch (error) {
       console.error("Signup error:", error);
       throw error;

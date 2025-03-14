@@ -10,6 +10,7 @@ import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import ForgotPassword from "./pages/ForgotPassword";
+import EmailConfirmation from "./pages/EmailConfirmation";
 import { AuthProvider } from "./hooks/use-auth";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
@@ -25,6 +26,7 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/email-confirmation" element={<EmailConfirmation />} />
             <Route 
               path="/" 
               element={
