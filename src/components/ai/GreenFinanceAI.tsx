@@ -50,19 +50,20 @@ export function GreenFinanceAI() {
       if (!model && open) {
         try {
           setModelLoading(true);
-          // Load the DeepSeek-R1 model with only supported options
+          
+          // Load the DeepSeek-R1-Zero model with supported options
           const textGenerator = await pipeline(
             'text-generation',
-            'deepseek-ai/DeepSeek-R1', 
+            'deepseek-ai/DeepSeek-R1-Zero',  // Updated to use Zero model
             { 
-              // Removed the trust_remote_code option as it's not supported in the type definition
               device: 'webgpu' // Try to use WebGPU for better performance if available
             }
           );
+          
           setModel(textGenerator);
           toast({
-            title: "DeepSeek-R1 Model Loaded",
-            description: "Using DeepSeek-R1 language model for responses.",
+            title: "DeepSeek-R1-Zero Model Loaded",
+            description: "Using DeepSeek-R1-Zero language model for responses.",
             variant: "default"
           });
         } catch (error) {
@@ -96,28 +97,46 @@ export function GreenFinanceAI() {
       let aiResponse: string;
       
       if (model) {
-        // Format message history for DeepSeek-R1 model
-        const messageHistory = messages.map(msg => ({
-          role: msg.role === 'assistant' ? 'Green finance AI' : 'user',
-          content: msg.content
-        }));
+        // Format the prompt for DeepSeek-R1-Zero model
+        let prompt = '';
+        
+        // Format conversation history for the model
+        messages.forEach(msg => {
+          if (msg.role === 'user') {
+            prompt += `Human: ${msg.content}\n`;
+          } else {
+            prompt += `Assistant: ${msg.content}\n`;
+          }
+        });
         
         // Add current user message
-        messageHistory.push({
-          role: 'user',
-          content: input
-        });
+        prompt += `Human: ${input}\nAssistant:`;
         
-        // Generate response with DeepSeek-R1 model
-        const result = await model(messageHistory, {
-          max_length: 100,
+        // Generate response with DeepSeek-R1-Zero model
+        const result = await model(prompt, {
+          max_new_tokens: 500,
           temperature: 0.7,
           top_p: 0.9,
-          repetition_penalty: 1.2,
+          do_sample: true,
+          repetition_penalty: 1.1,
         });
         
-        // Extract the generated text
+        // Extract the generated text and clean up
         aiResponse = result[0].generated_text;
+        
+        // Extract only the assistant's response part
+        const assistantResponseMatch = aiResponse.split(`Human: ${input}\nAssistant:`)[1];
+        
+        if (assistantResponseMatch) {
+          // Clean up the response - stop at the next "Human:" if present
+          const nextHumanIndex = assistantResponseMatch.indexOf("\nHuman:");
+          aiResponse = nextHumanIndex > 0 
+            ? assistantResponseMatch.substring(0, nextHumanIndex).trim()
+            : assistantResponseMatch.trim();
+        } else {
+          // If we can't extract properly, use the raw output
+          aiResponse = aiResponse.substring(prompt.length).trim();
+        }
         
         // If the response is empty or low quality, use fallback
         if (!aiResponse || aiResponse.length < 10) {
