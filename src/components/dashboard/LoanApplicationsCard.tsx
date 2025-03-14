@@ -31,16 +31,14 @@ const LoanApplicationsCard = () => {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   
-  // Fetch loan applications with a more reliable staleTime
   const { data: loanApplications, isLoading } = useQuery({
     queryKey: ['loanApplications'],
     queryFn: getLoanApplications,
-    staleTime: 30000, // 30 seconds before refetching
+    staleTime: 30000,
     placeholderData: [],
     retry: 3
   });
 
-  // Approve loan mutation with improved error handling
   const approveLoanMutation = useMutation({
     mutationFn: (loan: LoanApplication) => {
       setIsProcessing(true);
@@ -66,7 +64,6 @@ const LoanApplicationsCard = () => {
     }
   });
 
-  // Reject loan mutation with improved error handling
   const rejectLoanMutation = useMutation({
     mutationFn: (loan: LoanApplication) => {
       setIsProcessing(true);
@@ -92,7 +89,6 @@ const LoanApplicationsCard = () => {
     }
   });
 
-  // Format the name for the avatar fallback
   const getNameInitials = (name: string) => {
     return name.split(' ')
       .map(n => n[0])
@@ -101,58 +97,28 @@ const LoanApplicationsCard = () => {
       .substring(0, 2);
   };
 
-  // Calculate the returning amount (loan amount + 40% interest)
   const calculateReturningAmount = (amount: number) => {
     return (amount * 1.4).toFixed(2);
   };
 
-  // Handle approve loan with error handling
   const handleApproveLoan = (loan: LoanApplication) => {
     if (isProcessing) return;
     console.log('Approving loan with ID:', loan.id);
     approveLoanMutation.mutate(loan);
   };
 
-  // Handle reject loan with error handling
   const handleRejectLoan = (loan: LoanApplication) => {
     if (isProcessing) return;
     console.log('Rejecting loan with ID:', loan.id);
     rejectLoanMutation.mutate(loan);
   };
 
-  // Handle view details
   const handleViewDetails = (loan: LoanApplication) => {
     setSelectedLoan(loan);
     setDetailsOpen(true);
   };
 
-  // Create fake loan data for testing if needed
-  const fakeLoanData: LoanApplication[] = [
-    {
-      id: "1",
-      name: "Bongiwe Mbulasi",
-      email: "clintonbonganikhoza@gmail.com",
-      phone: "0712345678",
-      id_number: "9001011234567",
-      gender: "Female",
-      dob: "1990-01-01",
-      address: "123 Main Street, Johannesburg",
-      amount: 700,
-      bank: "Standard Bank",
-      account_number: "123456789",
-      purpose: "Education",
-      due_date: "2025-03-19",
-      timestamp: new Date().toISOString()
-    }
-  ];
-
-  // Always use fake data in development mode for consistent preview
-  const isDevelopment = process.env.NODE_ENV === 'development';
-  
-  // Use fake data or actual data depending on environment and data availability
-  const loansToDisplay = isDevelopment 
-    ? fakeLoanData 
-    : (loanApplications && loanApplications.length > 0 ? loanApplications : fakeLoanData);
+  const loansToDisplay = loanApplications && loanApplications.length > 0 ? loanApplications : [];
 
   return (
     <>
@@ -160,7 +126,7 @@ const LoanApplicationsCard = () => {
         <CardHeader>
           <CardTitle>Loan Applications</CardTitle>
           <CardDescription>
-            {loansToDisplay && loansToDisplay.length 
+            {loansToDisplay.length 
               ? `You have ${loansToDisplay.length} pending loan application${loansToDisplay.length !== 1 ? 's' : ''}` 
               : 'No pending loan applications'}
           </CardDescription>
@@ -174,7 +140,7 @@ const LoanApplicationsCard = () => {
                 <div className="h-3 w-3 bg-muted rounded-full"></div>
               </div>
             </div>
-          ) : loansToDisplay && loansToDisplay.length > 0 ? (
+          ) : loansToDisplay.length > 0 ? (
             <div className="space-y-2">
               {loansToDisplay.map((loan: LoanApplication) => (
                 <div 
@@ -246,7 +212,6 @@ const LoanApplicationsCard = () => {
         </CardContent>
       </Card>
 
-      {/* Loan Details Dialog - More compact, with data persisted */}
       <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
         <DialogContent className="sm:max-w-[300px] p-3">
           <DialogHeader className="pb-1">
