@@ -24,6 +24,9 @@ const Login = () => {
   const [signupPassword, setSignupPassword] = useState("");
   const [signupConfirmPassword, setSignupConfirmPassword] = useState("");
   const [signupFullName, setSignupFullName] = useState("");
+  const [signupGender, setSignupGender] = useState("");
+  const [signupHomeAddress, setSignupHomeAddress] = useState("");
+  const [signupCellphone, setSignupCellphone] = useState("");
   
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,8 +47,8 @@ const Login = () => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!signupEmail || !signupPassword || !signupConfirmPassword || !signupFullName) {
-      toast.error("Please fill in all fields");
+    if (!signupEmail || !signupPassword || !signupConfirmPassword || !signupFullName || !signupGender || !signupCellphone) {
+      toast.error("Please fill in all required fields");
       return;
     }
     
@@ -55,7 +58,14 @@ const Login = () => {
     }
     
     try {
-      await signUp(signupEmail, signupPassword, signupFullName);
+      await signUp(
+        signupEmail, 
+        signupPassword, 
+        signupFullName,
+        signupGender,
+        signupHomeAddress,
+        signupCellphone
+      );
       navigate("/");
     } catch (error) {
       // Error is already handled in the signUp function
@@ -128,7 +138,7 @@ const Login = () => {
             <form onSubmit={handleSignup}>
               <CardContent className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="full-name" className="text-foreground font-medium">Full Name</Label>
+                  <Label htmlFor="full-name" className="text-foreground font-medium">Full Name <span className="text-red-500">*</span></Label>
                   <Input 
                     id="full-name" 
                     placeholder=""
@@ -139,7 +149,7 @@ const Login = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-email" className="text-foreground font-medium">Email</Label>
+                  <Label htmlFor="signup-email" className="text-foreground font-medium">Email <span className="text-red-500">*</span></Label>
                   <Input 
                     id="signup-email" 
                     type="email" 
@@ -151,7 +161,44 @@ const Login = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="signup-password" className="text-foreground font-medium">Password</Label>
+                  <Label htmlFor="gender" className="text-foreground font-medium">Gender <span className="text-red-500">*</span></Label>
+                  <select
+                    id="gender"
+                    value={signupGender}
+                    onChange={(e) => setSignupGender(e.target.value)}
+                    required
+                    className="w-full p-2 rounded-md bg-white/50 border border-white/30"
+                  >
+                    <option value="">Select gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="cellphone" className="text-foreground font-medium">Cellphone <span className="text-red-500">*</span></Label>
+                  <Input 
+                    id="cellphone" 
+                    type="tel" 
+                    placeholder="" 
+                    value={signupCellphone}
+                    onChange={(e) => setSignupCellphone(e.target.value)}
+                    required
+                    className="bg-white/50 border-white/30"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="home-address" className="text-foreground font-medium">Home Address</Label>
+                  <Input 
+                    id="home-address" 
+                    placeholder="" 
+                    value={signupHomeAddress}
+                    onChange={(e) => setSignupHomeAddress(e.target.value)}
+                    className="bg-white/50 border-white/30"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="signup-password" className="text-foreground font-medium">Password <span className="text-red-500">*</span></Label>
                   <Input 
                     id="signup-password" 
                     type="password"
@@ -163,7 +210,7 @@ const Login = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="confirm-password" className="text-foreground font-medium">Confirm Password</Label>
+                  <Label htmlFor="confirm-password" className="text-foreground font-medium">Confirm Password <span className="text-red-500">*</span></Label>
                   <Input 
                     id="confirm-password" 
                     type="password"
