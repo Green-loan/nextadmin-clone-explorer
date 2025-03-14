@@ -166,7 +166,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setIsLoading(true);
       
-      // Generate user number (e.g., #4, #5, etc.)
+      // First, sign up with auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+      
+      if (authError) {
+        console.error("Auth signup error:", authError);
+        throw authError;
+      }
+      
+      // Generate user number
       const { count, error: countError } = await supabase
         .from("users_account")
         .select("*", { count: 'exact', head: true });
@@ -178,49 +189,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       const userNumber = `#${(count || 0) + 1}`;
       
-      // Encrypt the password using Web Crypto API
+      // Encrypt the password 
       const { encryptedPass, salt } = await encryptPassword(password);
       
-      // First insert into users_account table (we'll handle auth signup after this)
+      // Now insert into users_account table
       const { error: profileError } = await supabase.from("users_account").insert([
         {
           email,
           full_names: fullName,
-          gender: gender,
+          gender,
           home_address: homeAddress,
-          cellphone: cellphone,
+          cellphone,
           user_number: userNumber,
           role: 3, // Default user role
-          encryptedPass: encryptedPass,
-          salt: salt,
+          encryptedPass,
+          salt,
           date_of_birth: null, // Default null
         },
       ]);
       
       if (profileError) {
         console.error("Profile insert error:", profileError);
-        throw profileError;
-      }
-      
-      // After successfully storing user data, create auth user
-      const { data, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-      
-      if (authError) {
-        console.error("Auth signup error:", authError);
-        // If auth fails, we should clean up the inserted record
-        const { error: cleanupError } = await supabase
-          .from("users_account")
-          .delete()
-          .eq("email", email);
+        
+        // If profile insertion fails, delete the auth user
+        if (authData?.user) {
+          const { error: deleteAuthError } = await supabase.auth.admin.deleteUser(
+            authData.user.id
+          );
           
-        if (cleanupError) {
-          console.error("Cleanup error:", cleanupError);
+          if (deleteAuthError) {
+            console.error("Failed to clean up auth user:", deleteAuthError);
+          }
         }
         
-        throw authError;
+        throw profileError;
       }
       
       toast.success("Account created successfully! Please check your email to verify your account.");

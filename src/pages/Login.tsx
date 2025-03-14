@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -44,7 +43,7 @@ const Login = () => {
       await signIn(loginEmail, loginPassword);
       navigate("/");
     } catch (error) {
-      // Error is already handled in the signIn function
+      console.error("Login failed:", error);
     }
   };
   
@@ -67,7 +66,7 @@ const Login = () => {
         signupPassword, 
         signupFullName,
         signupGender,
-        signupHomeAddress,
+        signupHomeAddress || "",
         signupCellphone
       );
       
@@ -82,11 +81,8 @@ const Login = () => {
       
       // Switch to login tab
       document.getElementById("login-tab")?.click();
-      
-      toast.success("Account created successfully! Please check your email to verify your account.");
     } catch (error) {
       console.error("Signup error in form:", error);
-      // Error handling is already done in signUp function
     }
   };
   
