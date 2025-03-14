@@ -7,6 +7,7 @@ import ActivityChart from '@/components/dashboard/ActivityChart';
 import LoanApplicationsCard from '@/components/dashboard/LoanApplicationsCard';
 import Overview from '@/components/dashboard/Overview';
 import RecentSales from '@/components/dashboard/RecentSales';
+import { GreenFinanceAI } from '@/components/ai/GreenFinanceAI';
 import { 
   DollarSign, 
   Users, 
@@ -168,6 +169,9 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
+        
+        {/* AI Assistant */}
+        <GreenFinanceAI />
       </div>
     </Layout>
   );
