@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -241,7 +240,7 @@ const LoanApplicationsCard = () => {
             </div>
           ) : (
             <div className="h-[200px] flex items-center justify-center">
-              <p className="text-muted-foreground">No loan applications found</p>
+              <p className="text-muted-foreground">No applications</p>
             </div>
           )}
         </CardContent>
