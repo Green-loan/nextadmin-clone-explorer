@@ -62,8 +62,16 @@ const Login = () => {
   };
   
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-green-50 to-white p-4">
-      <Card className="w-full max-w-md shadow-lg">
+    <div 
+      className="min-h-screen flex items-center justify-center p-4"
+      style={{
+        backgroundImage: `url('/lovable-uploads/e1c1d0f9-c70c-4c83-a901-41bec3bcc4e8.png')`,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat'
+      }}
+    >
+      <Card className="w-full max-w-md shadow-lg bg-white/90 backdrop-blur-sm">
         <CardHeader className="space-y-1 flex flex-col items-center">
           <Logo size="lg" />
           <CardDescription className="text-center mt-2">
@@ -84,7 +92,7 @@ const Login = () => {
                   <Input 
                     id="email" 
                     type="email" 
-                    placeholder="name@example.com" 
+                    placeholder=""
                     value={loginEmail}
                     onChange={(e) => setLoginEmail(e.target.value)}
                     required
@@ -100,6 +108,7 @@ const Login = () => {
                   <Input 
                     id="password" 
                     type="password" 
+                    placeholder=""
                     value={loginPassword}
                     onChange={(e) => setLoginPassword(e.target.value)}
                     required
@@ -125,7 +134,7 @@ const Login = () => {
                   <Label htmlFor="full-name">Full Name</Label>
                   <Input 
                     id="full-name" 
-                    placeholder="John Doe" 
+                    placeholder=""
                     value={signupFullName}
                     onChange={(e) => setSignupFullName(e.target.value)}
                     required
@@ -136,7 +145,7 @@ const Login = () => {
                   <Input 
                     id="signup-email" 
                     type="email" 
-                    placeholder="name@example.com" 
+                    placeholder="" 
                     value={signupEmail}
                     onChange={(e) => setSignupEmail(e.target.value)}
                     required
@@ -147,6 +156,7 @@ const Login = () => {
                   <Input 
                     id="signup-password" 
                     type="password"
+                    placeholder=""
                     value={signupPassword}
                     onChange={(e) => setSignupPassword(e.target.value)}
                     required
@@ -157,6 +167,7 @@ const Login = () => {
                   <Input 
                     id="confirm-password" 
                     type="password"
+                    placeholder=""
                     value={signupConfirmPassword}
                     onChange={(e) => setSignupConfirmPassword(e.target.value)}
                     required
