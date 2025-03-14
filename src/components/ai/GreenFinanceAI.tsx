@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from 'react';
 import { Bot, SendIcon, ArrowLeft, FileImage, Paperclip } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -49,12 +50,12 @@ export function GreenFinanceAI() {
       if (!model && open) {
         try {
           setModelLoading(true);
-          // Load the DeepSeek-R1 model
+          // Load the DeepSeek-R1 model with only supported options
           const textGenerator = await pipeline(
             'text-generation',
             'deepseek-ai/DeepSeek-R1', 
             { 
-              trust_remote_code: true,
+              // Removed the trust_remote_code option as it's not supported in the type definition
               device: 'webgpu' // Try to use WebGPU for better performance if available
             }
           );
