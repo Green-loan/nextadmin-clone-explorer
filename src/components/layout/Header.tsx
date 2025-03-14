@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Bell, Search, Menu, User, Settings, LogOut } from 'lucide-react';
@@ -14,6 +13,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from "@/hooks/use-auth";
+import { Link } from 'react-router-dom';
 
 type HeaderProps = {
   toggleSidebar: () => void;
@@ -23,6 +24,8 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   const [mounted, setMounted] = useState(false);
   const [profileUrl, setProfileUrl] = useState<string | null>(null);
   const [userInitials, setUserInitials] = useState('JD');
+  
+  const { user, signOut } = useAuth();
   
   useEffect(() => {
     setMounted(true);
@@ -106,36 +109,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             <span className="sr-only">Notifications</span>
           </Button>
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <Avatar className="h-8 w-8">
-                  {profileUrl ? (
-                    <AvatarImage src={profileUrl} alt="User" />
-                  ) : (
-                    <AvatarFallback>{userInitials}</AvatarFallback>
-                  )}
-                </Avatar>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 animate-scale-in">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer">
-                <User className="mr-2 h-4 w-4" />
-                <span>Profile</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer text-destructive">
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Log out</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <UserNav />
         </div>
       </div>
     </header>
