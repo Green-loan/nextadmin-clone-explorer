@@ -1,12 +1,13 @@
 
 import { useState, useRef, useEffect } from 'react';
-import { Bot, SendIcon, X } from 'lucide-react';
+import { Bot, SendIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { pipeline } from '@huggingface/transformers';
 
 interface Message {
   role: 'user' | 'assistant';
@@ -23,8 +24,49 @@ export function GreenFinanceAI() {
   const [messages, setMessages] = useState<Message[]>([INITIAL_MESSAGE]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [model, setModel] = useState<any>(null);
+  const [modelLoading, setModelLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Load the model when component mounts
+  useEffect(() => {
+    async function loadModel() {
+      if (open && !model && !modelLoading) {
+        setModelLoading(true);
+        try {
+          toast({
+            title: "Loading AI model",
+            description: "Please wait while we load the AI model...",
+          });
+          
+          // Initialize the text generation pipeline with a small model suitable for browser
+          const textGenerator = await pipeline(
+            'text-generation',
+            'Xenova/distilgpt2', // Using a small model that can run in browser
+            { device: 'cpu' }
+          );
+          
+          setModel(textGenerator);
+          toast({
+            title: "AI model loaded",
+            description: "The Green Finance AI assistant is ready to help you!",
+          });
+        } catch (error) {
+          console.error("Error loading model:", error);
+          toast({
+            title: "Error",
+            description: "Failed to load the AI model. Using fallback responses.",
+            variant: "destructive"
+          });
+        } finally {
+          setModelLoading(false);
+        }
+      }
+    }
+    
+    loadModel();
+  }, [open, model, modelLoading, toast]);
 
   // Scroll to bottom of messages
   useEffect(() => {
@@ -42,8 +84,39 @@ export function GreenFinanceAI() {
     setIsLoading(true);
     
     try {
-      // Simulate AI response with sample responses about finance
-      setTimeout(() => {
+      if (model) {
+        // Create a context for the model with financial terms
+        const prompt = `The following is a conversation with a Green Finance AI assistant. The assistant provides helpful, accurate, and concise information about loans, financial advice, sustainable business practices, and green finance.
+        
+        User: ${input}
+        
+        Green Finance AI:`;
+        
+        // Generate a response using the model
+        const result = await model(prompt, {
+          max_new_tokens: 100,
+          temperature: 0.7,
+          top_p: 0.9,
+          repetition_penalty: 1.2,
+        });
+        
+        // Extract and clean up the generated text
+        let generatedText = result[0]?.generated_text || '';
+        if (generatedText) {
+          // Extract just the assistant's response
+          const aiResponseText = generatedText.split('Green Finance AI:').pop()?.trim();
+          
+          // Add AI response to messages
+          if (aiResponseText) {
+            const aiResponse: Message = { 
+              role: 'assistant', 
+              content: aiResponseText
+            };
+            setMessages(prev => [...prev, aiResponse]);
+          }
+        }
+      } else {
+        // Fallback responses about finance if the model isn't loaded
         const responses = [
           "Based on your loan history, I recommend considering a green energy loan for solar panels. They typically have lower interest rates and could reduce your operating costs.",
           "Looking at the current market trends, green finance investments are showing promising growth. Would you like me to provide more specific data?",
@@ -58,14 +131,22 @@ export function GreenFinanceAI() {
         };
         
         setMessages(prev => [...prev, aiResponse]);
-        setIsLoading(false);
-      }, 1000);
+      }
     } catch (error) {
+      console.error("Error generating response:", error);
       toast({
         title: "Error",
         description: "Failed to get a response. Please try again.",
         variant: "destructive"
       });
+      
+      // Add fallback response
+      const aiResponse: Message = { 
+        role: 'assistant', 
+        content: "I apologize, but I'm having trouble processing your request right now. Could you please try again later?"
+      };
+      setMessages(prev => [...prev, aiResponse]);
+    } finally {
       setIsLoading(false);
     }
   };
