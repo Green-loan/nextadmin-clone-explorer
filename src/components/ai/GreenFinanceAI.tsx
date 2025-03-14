@@ -59,8 +59,8 @@ export function GreenFinanceAI() {
             "text-generation", 
             "deepseek-ai/DeepSeek-R1-Zero", 
             { 
-              quantized: true, // Use quantized model for better performance
-              progress_callback: (progress) => {
+              // Remove the quantized property since it's not in the type definition
+              progress_callback: (progress: number) => {
                 console.log(`Model loading progress: ${Math.round(progress * 100)}%`);
               }
             }
