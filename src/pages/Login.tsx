@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -66,9 +65,23 @@ const Login = () => {
         signupHomeAddress,
         signupCellphone
       );
-      navigate("/");
+      
+      // Reset form fields after successful signup
+      setSignupEmail("");
+      setSignupPassword("");
+      setSignupConfirmPassword("");
+      setSignupFullName("");
+      setSignupGender("");
+      setSignupHomeAddress("");
+      setSignupCellphone("");
+      
+      // Switch to login tab
+      document.getElementById("login-tab")?.click();
+      
+      toast.success("Account created successfully! Please check your email to verify your account.");
     } catch (error) {
-      // Error is already handled in the signUp function
+      console.error("Signup error in form:", error);
+      // Error handling is already done in signUp function
     }
   };
   
@@ -85,7 +98,7 @@ const Login = () => {
         </CardHeader>
         <Tabs defaultValue="login" className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-white/20">
-            <TabsTrigger value="login" className="data-[state=active]:bg-white/30">Login</TabsTrigger>
+            <TabsTrigger id="login-tab" value="login" className="data-[state=active]:bg-white/30">Login</TabsTrigger>
             <TabsTrigger value="signup" className="data-[state=active]:bg-white/30">Sign Up</TabsTrigger>
           </TabsList>
           

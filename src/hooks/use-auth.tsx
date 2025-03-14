@@ -202,7 +202,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
       ]);
       
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error("Profile error:", profileError);
+        throw profileError;
+      }
       
       toast.success("Account created successfully! Please check your email to verify your account.");
     } catch (error) {
