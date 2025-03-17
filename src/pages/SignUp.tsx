@@ -16,15 +16,20 @@ import ThreeDBackground from "@/components/auth/ThreeDBackground";
 const formSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  confirmPassword: z.string().min(6, { message: "Password must be at least 6 characters" }),
   fullName: z.string().min(2, { message: "Full name is required" }),
   role: z.string({
     required_error: "Please select a role",
   }),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
 });
 
 export default function SignUp() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -32,6 +37,7 @@ export default function SignUp() {
     defaultValues: {
       email: "",
       password: "",
+      confirmPassword: "",
       fullName: "",
       role: "",
     },
@@ -154,6 +160,34 @@ export default function SignUp() {
                         className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white"
                       >
                         {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                  </FormControl>
+                  <FormMessage className="text-red-400" />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-slate-200">Confirm Password</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input 
+                        type={showConfirmPassword ? "text" : "password"} 
+                        placeholder="" 
+                        {...field} 
+                        className="bg-white/5 border-white/10 text-white pr-10 placeholder:text-slate-400"
+                      />
+                      <button 
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-white"
+                      >
+                        {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                       </button>
                     </div>
                   </FormControl>
