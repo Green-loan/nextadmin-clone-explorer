@@ -31,8 +31,6 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [securityTimer, setSecurityTimer] = useState(19); // Initialize to 19 seconds
-  const [timerActive, setTimerActive] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -45,49 +43,11 @@ export default function SignUp() {
     },
   });
 
-  // Security timer function
-  const startSecurityTimer = () => {
-    setTimerActive(true);
-    setSecurityTimer(19); // Ensure we start with 19 seconds
-    
-    const timer = setInterval(() => {
-      setSecurityTimer((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          setTimerActive(false);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    // Return cleanup function
-    return timer;
-  };
-
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       setIsLoading(true);
       
       console.log("Submitting signup form with values:", { ...values, password: "REDACTED" });
-      
-      // Start security timer and show notification
-      const timer = startSecurityTimer();
-      toast.info(`Security verification in progress. Please wait 19 seconds...`);
-      
-      // Wait for security timer to complete
-      await new Promise(resolve => setTimeout(resolve, 19000)); // 19 seconds delay
-      
-      // Clear the timer if it's still running
-      clearInterval(timer);
-      
-      // Check if the form is still mounted/relevant (user didn't navigate away)
-      if (!timerActive) {
-        console.log("Security verification was canceled");
-        return;
-      }
-      
-      console.log("Security verification complete, proceeding with signup");
       
       // Sign up with Supabase auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -131,7 +91,7 @@ export default function SignUp() {
       }
 
       console.log("User profile created successfully");
-      toast.success("Account created successfully! Please check your email for verification.");
+      toast.success("Account created successfully!");
       
       // Add a small delay before navigation to ensure toast is seen
       setTimeout(() => {
@@ -142,7 +102,6 @@ export default function SignUp() {
       toast.error(error instanceof Error ? error.message : "Failed to create account");
     } finally {
       setIsLoading(false);
-      setTimerActive(false);
     }
   }
 
@@ -282,17 +241,12 @@ export default function SignUp() {
             <Button 
               type="submit" 
               className="w-full bg-green-600 hover:bg-green-700 text-white mt-6"
-              disabled={isLoading || timerActive}
+              disabled={isLoading}
             >
               {isLoading ? (
                 <span className="flex items-center gap-2">
                   <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                   Creating account...
-                </span>
-              ) : timerActive ? (
-                <span className="flex items-center gap-2">
-                  <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                  Security check ({securityTimer}s)...
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
