@@ -31,6 +31,8 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [securityTimer, setSecurityTimer] = useState(0);
+  const [timerActive, setTimerActive] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -43,11 +45,37 @@ export default function SignUp() {
     },
   });
 
+  // Security timer function
+  const startSecurityTimer = () => {
+    setTimerActive(true);
+    setSecurityTimer(19); // 19 seconds for security check
+    
+    const timer = setInterval(() => {
+      setSecurityTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          setTimerActive(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  };
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsLoading(true);
     
     try {
       console.log("Submitting signup form with values:", { ...values, password: "REDACTED" });
+      
+      // Start security timer
+      startSecurityTimer();
+      toast.info(`Security verification in progress. Please wait ${securityTimer} seconds...`);
+      
+      // Wait for security timer to complete
+      await new Promise(resolve => setTimeout(resolve, 19000)); // 19 seconds delay
       
       // Sign up with Supabase auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -68,34 +96,41 @@ export default function SignUp() {
 
       console.log("Auth signup successful:", authData);
 
-      if (authData.user) {
-        // Insert user profile data
-        const { error: profileError } = await supabase
-          .from('users_account')
-          .insert([
-            {
-              id: authData.user.id,
-              email: values.email,
-              full_names: values.fullName,
-              role: values.role === 'admin' ? 1 : 3, // Map role string to number (admin=1, investor=3)
-              confirmed: true, // Set to true by default
-            },
-          ]);
-
-        if (profileError) {
-          console.error("Profile error:", profileError);
-          throw profileError;
-        }
-
-        console.log("User profile created successfully");
-        toast.success("Account created successfully! Please check your email for verification.");
-        navigate("/signin");
+      if (!authData.user) {
+        throw new Error("User creation failed. Please try again.");
       }
+
+      // Insert user profile data
+      const { error: profileError } = await supabase
+        .from('users_account')
+        .insert([
+          {
+            id: authData.user.id,
+            email: values.email,
+            full_names: values.fullName,
+            role: values.role === 'admin' ? 1 : 3, // Map role string to number (admin=1, investor=3)
+            confirmed: true, // Set to true by default
+          },
+        ]);
+
+      if (profileError) {
+        console.error("Profile error:", profileError);
+        throw profileError;
+      }
+
+      console.log("User profile created successfully");
+      toast.success("Account created successfully! Please check your email for verification.");
+      
+      // Add a small delay before navigation to ensure toast is seen
+      setTimeout(() => {
+        navigate("/signin");
+      }, 2000);
     } catch (error) {
       console.error("Signup error:", error);
       toast.error(error instanceof Error ? error.message : "Failed to create account");
     } finally {
       setIsLoading(false);
+      setTimerActive(false);
     }
   }
 
@@ -235,12 +270,17 @@ export default function SignUp() {
             <Button 
               type="submit" 
               className="w-full bg-green-600 hover:bg-green-700 text-white mt-6"
-              disabled={isLoading}
+              disabled={isLoading || timerActive}
             >
               {isLoading ? (
                 <span className="flex items-center gap-2">
                   <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                   Creating account...
+                </span>
+              ) : timerActive ? (
+                <span className="flex items-center gap-2">
+                  <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                  Security check ({securityTimer}s)...
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
