@@ -85,6 +85,13 @@ export default function SignUp() {
       
       <div className="w-full max-w-md z-10 px-8 py-12 rounded-2xl bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl">
         <div className="mb-8 text-center">
+          <div className="flex justify-center mb-6">
+            <img 
+              src="/lovable-uploads/a2ba7d49-d862-44f2-ba79-09dfd459d0dd.png" 
+              alt="Green Finance Logo" 
+              className="h-16 w-auto"
+            />
+          </div>
           <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
           <p className="text-slate-300">Sign up to get started</p>
         </div>
@@ -180,7 +187,7 @@ export default function SignUp() {
             
             <Button 
               type="submit" 
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white mt-6"
+              className="w-full bg-green-600 hover:bg-green-700 text-white mt-6"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -201,7 +208,7 @@ export default function SignUp() {
         <div className="mt-6 text-center">
           <p className="text-slate-300">
             Already have an account?{" "}
-            <Link to="/signin" className="text-blue-400 hover:text-blue-300 font-medium">
+            <Link to="/signin" className="text-green-400 hover:text-green-300 font-medium">
               Sign in
             </Link>
           </p>
