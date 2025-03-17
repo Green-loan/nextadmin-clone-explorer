@@ -31,7 +31,7 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [securityTimer, setSecurityTimer] = useState(0);
+  const [securityTimer, setSecurityTimer] = useState(19); // Initialize to 19 seconds
   const [timerActive, setTimerActive] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -48,7 +48,7 @@ export default function SignUp() {
   // Security timer function
   const startSecurityTimer = () => {
     setTimerActive(true);
-    setSecurityTimer(19); // 19 seconds for security check
+    setSecurityTimer(19); // Ensure we start with 19 seconds
     
     const timer = setInterval(() => {
       setSecurityTimer((prev) => {
@@ -61,21 +61,33 @@ export default function SignUp() {
       });
     }, 1000);
 
-    return () => clearInterval(timer);
+    // Return cleanup function
+    return timer;
   };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsLoading(true);
-    
     try {
+      setIsLoading(true);
+      
       console.log("Submitting signup form with values:", { ...values, password: "REDACTED" });
       
-      // Start security timer
-      startSecurityTimer();
-      toast.info(`Security verification in progress. Please wait ${securityTimer} seconds...`);
+      // Start security timer and show notification
+      const timer = startSecurityTimer();
+      toast.info(`Security verification in progress. Please wait 19 seconds...`);
       
       // Wait for security timer to complete
       await new Promise(resolve => setTimeout(resolve, 19000)); // 19 seconds delay
+      
+      // Clear the timer if it's still running
+      clearInterval(timer);
+      
+      // Check if the form is still mounted/relevant (user didn't navigate away)
+      if (!timerActive) {
+        console.log("Security verification was canceled");
+        return;
+      }
+      
+      console.log("Security verification complete, proceeding with signup");
       
       // Sign up with Supabase auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
