@@ -47,15 +47,26 @@ export default function SignUp() {
     setIsLoading(true);
     
     try {
+      console.log("Submitting signup form with values:", { ...values, password: "REDACTED" });
+      
       // Sign up with Supabase auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
+        options: {
+          data: {
+            full_name: values.fullName,
+            role: values.role
+          }
+        }
       });
 
       if (authError) {
+        console.error("Auth error:", authError);
         throw authError;
       }
+
+      console.log("Auth signup successful:", authData);
 
       if (authData.user) {
         // Insert user profile data
@@ -67,18 +78,21 @@ export default function SignUp() {
               email: values.email,
               full_names: values.fullName,
               role: values.role === 'admin' ? 1 : 3, // Map role string to number (admin=1, investor=3)
-              password: '[PROTECTED]', // Don't store actual password, just a placeholder
+              confirmed: true, // Set to true by default
             },
           ]);
 
         if (profileError) {
+          console.error("Profile error:", profileError);
           throw profileError;
         }
 
-        toast.success("Account created successfully! Please verify your email.");
+        console.log("User profile created successfully");
+        toast.success("Account created successfully! Please check your email for verification.");
         navigate("/signin");
       }
     } catch (error) {
+      console.error("Signup error:", error);
       toast.error(error instanceof Error ? error.message : "Failed to create account");
     } finally {
       setIsLoading(false);
