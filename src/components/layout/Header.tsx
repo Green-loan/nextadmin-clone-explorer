@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/hooks/use-auth';
 
 type HeaderProps = {
   toggleSidebar: () => void;
@@ -23,6 +24,8 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
   const [mounted, setMounted] = useState(false);
   const [profileUrl, setProfileUrl] = useState<string | null>(null);
   const [userInitials, setUserInitials] = useState('JD');
+  const [userName, setUserName] = useState('');
+  const { signOut } = useAuth();
   
   useEffect(() => {
     setMounted(true);
@@ -45,6 +48,7 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           }
           
           if (data.full_names) {
+            setUserName(data.full_names);
             const initials = data.full_names
               .split(' ')
               .map(name => name[0])
@@ -60,6 +64,26 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
     
     getCurrentUser();
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      // Log the logout action
+      await supabase.from('user_logs').insert({
+        user_id: (await supabase.auth.getSession()).data.session?.user.id,
+        action: 'LOGOUT',
+        description: 'User logged out',
+        ip_address: 'Unknown', // In a real app, you'd capture this
+        device_info: navigator.userAgent
+      });
+      
+      // Sign out
+      await signOut();
+    } catch (error) {
+      console.error('Error logging action:', error);
+      // Still attempt to sign out even if logging failed
+      await signOut();
+    }
+  };
 
   if (!mounted) return null;
 
@@ -119,18 +143,27 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 animate-scale-in">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuLabel>
+                {userName || 'My Account'}
+              </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer">
-                <User className="mr-2 h-4 w-4" />
-                <span>Profile</span>
+              <DropdownMenuItem className="cursor-pointer" asChild>
+                <Link to="/settings">
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer">
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
+              <DropdownMenuItem className="cursor-pointer" asChild>
+                <Link to="/settings">
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer text-destructive">
+              <DropdownMenuItem 
+                className="cursor-pointer text-destructive"
+                onClick={handleLogout}
+              >
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Log out</span>
               </DropdownMenuItem>

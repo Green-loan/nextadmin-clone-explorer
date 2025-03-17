@@ -1,4 +1,3 @@
-
 -- Create the users_account table
 CREATE TABLE users_account (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -129,3 +128,27 @@ INSERT INTO system_settings (setting_key, setting_value) VALUES
 ('email', 'greenservice.loan@gmail.com'),
 ('phone_number', '+27 640 5195 93'),
 ('message', 'It''s good to Invest in greenVest');
+
+-- Create user_settings table
+CREATE TABLE user_settings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users_account(id) ON DELETE CASCADE,
+    theme VARCHAR(20) DEFAULT 'light',
+    email_notifications BOOLEAN DEFAULT true,
+    sms_notifications BOOLEAN DEFAULT false,
+    language VARCHAR(10) DEFAULT 'en',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE(user_id)
+);
+
+-- Create user_logs table
+CREATE TABLE user_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES users_account(id) ON DELETE CASCADE,
+    action VARCHAR(100) NOT NULL,
+    description TEXT,
+    ip_address VARCHAR(50),
+    device_info TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
