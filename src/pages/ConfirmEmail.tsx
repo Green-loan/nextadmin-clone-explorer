@@ -134,20 +134,28 @@ export default function ConfirmEmail() {
     
     try {
       setIsLoading(true);
+      setError(null);
       
-      const { error } = await supabase.auth.resend({
+      // Use the correct resend API call with the proper type parameter
+      const { data, error } = await supabase.auth.resend({
         type: "signup",
-        email,
+        email: email,
+        options: {
+          emailRedirectTo: window.location.origin + "/confirm-email"
+        }
       });
       
       if (error) {
+        console.error("Error resending verification code:", error);
         throw error;
       }
       
+      console.log("Verification code resent:", data);
       toast.success("Verification code has been resent to your email");
     } catch (err) {
       console.error("Error resending code:", err);
-      toast.error(err instanceof Error ? err.message : "Failed to resend code");
+      setError(err instanceof Error ? err.message : "Failed to resend verification code");
+      toast.error(err instanceof Error ? err.message : "Failed to resend verification code");
     } finally {
       setIsLoading(false);
     }
