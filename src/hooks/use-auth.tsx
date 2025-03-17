@@ -11,6 +11,7 @@ interface AuthContextType {
   userRole: number | null;
   isConfirmed: boolean;
   signOut: () => Promise<void>;
+  refreshUserData: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -43,6 +44,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (err) {
       console.error('Error in fetchUserData:', err);
+    }
+  };
+
+  // Function to manually refresh user data
+  const refreshUserData = async () => {
+    if (user) {
+      await fetchUserData(user.id);
     }
   };
 
@@ -127,6 +135,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     userRole,
     isConfirmed,
     signOut,
+    refreshUserData,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

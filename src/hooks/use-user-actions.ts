@@ -1,3 +1,4 @@
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { toast } from '@/hooks/use-toast';
@@ -69,6 +70,37 @@ export function useUpdateUserStatus() {
   });
 }
 
+// Upload profile picture and return the public URL
+export async function uploadProfilePicture(file: File, userId: string): Promise<string> {
+  if (!file || !userId) {
+    throw new Error("File and user ID are required");
+  }
+  
+  try {
+    // Create a unique file name
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${userId}-${Date.now()}.${fileExt}`;
+    const filePath = `profile-pictures/${fileName}`;
+    
+    // Upload to Supabase Storage
+    const { error: uploadError } = await supabase.storage
+      .from('users')
+      .upload(filePath, file);
+    
+    if (uploadError) throw uploadError;
+    
+    // Get the public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('users')
+      .getPublicUrl(filePath);
+    
+    return publicUrl;
+  } catch (error) {
+    console.error('Error uploading profile picture:', error);
+    throw error;
+  }
+}
+
 // Update user details
 export function useUpdateUser() {
   const queryClient = useQueryClient();
@@ -77,16 +109,23 @@ export function useUpdateUser() {
     mutationFn: async (userData: Partial<SupabaseUser> & { id: string }) => {
       const { id, ...updateData } = userData;
       
+      console.log('Updating user with data:', updateData);
+      
       const { data, error } = await supabase
         .from('users_account')
         .update(updateData)
         .eq('id', id);
 
-      if (error) throw new Error(error.message);
+      if (error) {
+        console.error('Error updating user:', error);
+        throw new Error(error.message);
+      }
+      
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['user', variables.id] });
       toast({
         title: 'User updated',
         description: 'User details have been updated successfully.',

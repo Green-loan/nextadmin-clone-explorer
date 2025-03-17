@@ -14,6 +14,7 @@ import DataTable from '@/components/ui/DataTable';
 import { formatDistanceToNow } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Camera, Loader2 } from 'lucide-react';
+import { uploadProfilePicture } from '@/hooks/use-user-actions';
 
 type UserSettings = {
   theme: string;
@@ -50,7 +51,7 @@ const Settings = () => {
     language: 'en',
   });
   const [userLogs, setUserLogs] = useState<UserLog[]>([]);
-  const { user } = useAuth();
+  const { user, refreshUserData } = useAuth();
 
   useEffect(() => {
     if (user) {
@@ -164,22 +165,8 @@ const Settings = () => {
     
     setUploadLoading(true);
     try {
-      // Create a unique file name
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-      const filePath = `profile-pictures/${fileName}`;
-      
-      // Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from('users')
-        .upload(filePath, file);
-      
-      if (uploadError) throw uploadError;
-      
-      // Get the public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('users')
-        .getPublicUrl(filePath);
+      // Use the reusable upload function from use-user-actions
+      const publicUrl = await uploadProfilePicture(file, user.id);
       
       // Update user profile with the new picture URL
       const { error: updateError } = await supabase
@@ -195,6 +182,9 @@ const Settings = () => {
       await logUserAction('PROFILE_PICTURE_UPDATE', 'User updated their profile picture');
       
       toast.success('Profile picture uploaded successfully');
+      
+      // Refresh user data in auth context
+      await refreshUserData();
     } catch (error) {
       console.error('Error uploading profile picture:', error);
       toast.error('Failed to upload profile picture');
@@ -226,6 +216,9 @@ const Settings = () => {
         .eq('id', user.id);
       
       if (error) throw error;
+      
+      // Refresh user data in the auth context
+      await refreshUserData();
       
       await logUserAction('PROFILE_UPDATE', 'User updated their profile information');
       toast.success('Profile updated successfully');

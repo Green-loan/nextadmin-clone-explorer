@@ -1,10 +1,8 @@
-
 import React, { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useUserDetails, useUpdateUser } from '@/hooks/use-user-actions';
-import { supabase } from '@/lib/supabase';
+import { useUserDetails, useUpdateUser, uploadProfilePicture } from '@/hooks/use-user-actions';
 import { toast } from '@/hooks/use-toast';
 import { 
   Dialog, 
@@ -72,10 +70,10 @@ const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) => {
   React.useEffect(() => {
     if (user) {
       form.reset({
-        full_names: user.full_names,
-        email: user.email,
-        gender: user.gender,
-        role: user.role,
+        full_names: user.full_names || '',
+        email: user.email || '',
+        gender: user.gender || '',
+        role: user.role || 3,
         cellphone: user.cellphone || '',
         home_address: user.home_address || '',
         date_of_birth: user.date_of_birth || '',
@@ -95,20 +93,7 @@ const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) => {
     setIsUploading(true);
     
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${userId}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-      const filePath = `profile-pictures/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('users')
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('users')
-        .getPublicUrl(filePath);
-
+      const publicUrl = await uploadProfilePicture(file, userId);
       form.setValue('profile_picture', publicUrl);
       
       toast({
@@ -132,11 +117,15 @@ const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) => {
 
   const onSubmit = async (data: UserFormValues) => {
     if (userId) {
-      await updateUser.mutateAsync({
-        id: userId,
-        ...data,
-      });
-      onClose();
+      try {
+        await updateUser.mutateAsync({
+          id: userId,
+          ...data,
+        });
+        onClose();
+      } catch (error) {
+        console.error("Error updating user:", error);
+      }
     }
   };
 
