@@ -89,7 +89,7 @@ export default function SignUp() {
             <img 
               src="/lovable-uploads/a2ba7d49-d862-44f2-ba79-09dfd459d0dd.png" 
               alt="Green Finance Logo" 
-              className="h-16 w-auto"
+              className="h-24 w-auto" // Increased from h-16 to h-24
             />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
