@@ -40,7 +40,7 @@ const ProtectedRoute = ({
   
   // Check if email confirmation is required and if the user is confirmed
   if (requireConfirmation && !isConfirmed) {
-    return <Navigate to="/confirm-email" replace />;
+    return <Navigate to={`/confirm-email?email=${encodeURIComponent(user.email || '')}`} replace />;
   }
   
   // Check if user has the required role
@@ -49,7 +49,7 @@ const ProtectedRoute = ({
     if (userRole === 1) {
       return <Navigate to="/" replace />; // Admin dashboard
     } else if (userRole === 3) {
-      return <Navigate to="/investors" replace />; // Investors site (you'll need to create this page)
+      return <Navigate to="/investors" replace />; // Investors site
     } else {
       return <Navigate to="/" replace />; // Default fallback
     }
@@ -101,7 +101,7 @@ const App = () => (
             <Route path="/reports" element={<ProtectedRoute allowedRoles={[1]}><Reports /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute allowedRoles={[1]}><Analytics /></ProtectedRoute>} />
             
-            {/* Investor routes (role 3) - You'll need to create these pages */}
+            {/* Investor routes (role 3) */}
             <Route path="/investors" element={<ProtectedRoute allowedRoles={[3]}>
               <div className="p-8">
                 <h1 className="text-2xl font-bold">Investor Dashboard</h1>

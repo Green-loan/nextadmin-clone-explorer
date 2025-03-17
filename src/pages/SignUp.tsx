@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -55,11 +54,7 @@ export default function SignUp() {
       // Map role string to number
       const roleNumber = values.role === 'admin' ? 1 : 3; // admin=1, investor=3
       
-      // Get the current domain for the redirect URL
-      const redirectUrl = `${window.location.origin}/confirm-email`;
-      console.log("Using redirect URL:", redirectUrl);
-      
-      // Sign up with Supabase auth - this will send a confirmation email
+      // Sign up with Supabase auth - this will send a verification code
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
@@ -68,7 +63,7 @@ export default function SignUp() {
             full_name: values.fullName,
             role: values.role
           },
-          emailRedirectTo: redirectUrl
+          // Don't use a redirect URL since we're using OTP verification
         }
       });
 
@@ -98,10 +93,7 @@ export default function SignUp() {
 
       if (profileError) {
         console.error("Profile error:", profileError);
-        // If we fail to create the profile, we should try to delete the auth user
-        // This is to prevent orphaned auth users without profiles
         try {
-          // This would be handled by an admin function in production
           console.log("Attempting to clean up auth user due to profile creation failure");
         } catch (cleanupError) {
           console.error("Failed to clean up auth user:", cleanupError);
@@ -111,8 +103,8 @@ export default function SignUp() {
 
       console.log("User profile created successfully");
       
-      // Show success toast and update UI to show email sent screen
-      toast.success("Account created! Please check your email to confirm your address.");
+      // Show success toast and update UI to show verification code sent screen
+      toast.success("Account created! A verification code has been sent to your email.");
       setEmailSent(true);
       
     } catch (error) {
@@ -143,14 +135,20 @@ export default function SignUp() {
             
             <h1 className="text-3xl font-bold text-white mb-4">Check Your Email</h1>
             <p className="text-slate-300 mb-2">
-              We've sent a confirmation link to:
+              We've sent a verification code to:
             </p>
             <p className="text-green-400 font-medium text-xl mb-6">{userEmail}</p>
             <p className="text-slate-300 mb-6">
-              Please check your inbox and click the link to confirm your email address.
+              Please check your inbox for the 6-digit verification code.
             </p>
             
             <div className="mt-8 space-y-4">
+              <Button 
+                onClick={() => navigate(`/confirm-email?email=${encodeURIComponent(userEmail)}`)} 
+                className="w-full bg-green-600 hover:bg-green-700 text-white"
+              >
+                Enter Verification Code
+              </Button>
               <Button 
                 onClick={() => navigate("/signin")} 
                 variant="outline" 
@@ -159,7 +157,7 @@ export default function SignUp() {
                 Go to Sign In
               </Button>
               <p className="text-slate-400 text-sm">
-                Didn't receive an email? Check your spam folder or 
+                Didn't receive the code? Check your spam folder or 
                 <button 
                   onClick={() => {
                     setEmailSent(false);

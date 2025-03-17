@@ -60,8 +60,8 @@ export default function SignIn() {
         
         // If user is not confirmed, send them to confirm email page
         if (!userData.confirmed) {
-          toast.warning("Please confirm your email address before continuing.");
-          navigate("/confirm-email");
+          toast.warning("Please verify your email address before continuing.");
+          navigate(`/confirm-email?email=${encodeURIComponent(values.email)}`);
           return;
         }
         
@@ -173,6 +173,11 @@ export default function SignIn() {
             Don't have an account?{" "}
             <Link to="/signup" className="text-green-400 hover:text-green-300 font-medium">
               Sign up
+            </Link>
+          </p>
+          <p className="mt-2 text-slate-300">
+            <Link to="/confirm-email" className="text-green-400 hover:text-green-300 font-medium">
+              Need to verify your email?
             </Link>
           </p>
         </div>
