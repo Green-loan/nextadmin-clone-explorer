@@ -2,6 +2,7 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Session, User } from '@supabase/supabase-js';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface AuthContextType {
   user: User | null;
@@ -20,6 +21,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [userRole, setUserRole] = useState<number | null>(null);
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const fetchUserData = async (userId: string) => {
     try {
@@ -66,6 +69,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setUserRole(null);
         setIsConfirmed(false);
+        
+        // If session is null and user is not on an auth page, redirect to signin
+        const isAuthRoute = ['/signin', '/signup', '/confirm-email'].some(route => 
+          location.pathname.startsWith(route)
+        );
+        
+        if (!isAuthRoute) {
+          navigate('/signin');
+        }
       }
       
       setIsLoading(false);
@@ -74,12 +86,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate, location.pathname]);
 
   const signOut = async () => {
     await supabase.auth.signOut();
     setUserRole(null);
     setIsConfirmed(false);
+    navigate('/signin');
   };
 
   const value = {

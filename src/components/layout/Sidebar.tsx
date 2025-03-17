@@ -26,7 +26,7 @@ const Sidebar = ({ isMobile, isOpen, toggleSidebar }: SidebarProps) => {
   const location = useLocation();
   const [mounted, setMounted] = useState(false);
   const [userName, setUserName] = useState('User');
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
 
   useEffect(() => {
     setMounted(true);
@@ -48,6 +48,26 @@ const Sidebar = ({ isMobile, isOpen, toggleSidebar }: SidebarProps) => {
     
     fetchUserName();
   }, [user]);
+
+  const handleLogout = async () => {
+    try {
+      // Log the logout action
+      if (user) {
+        await supabase.from('user_logs').insert({
+          user_id: user.id,
+          action: 'LOGOUT',
+          description: 'User logged out',
+          ip_address: 'Unknown',
+          device_info: navigator.userAgent
+        });
+      }
+      
+      // Sign out using auth hook
+      await signOut();
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  };
 
   if (!mounted) return null;
 
@@ -93,7 +113,10 @@ const Sidebar = ({ isMobile, isOpen, toggleSidebar }: SidebarProps) => {
         </nav>
 
         <div className="px-2 pt-2 mt-auto">
-          <button className="sidebar-item justify-center py-3 w-full text-sidebar-foreground/70 hover:text-destructive">
+          <button 
+            onClick={handleLogout}
+            className="sidebar-item justify-center py-3 w-full text-sidebar-foreground/70 hover:text-destructive"
+          >
             <LogOut size={20} />
           </button>
         </div>
@@ -151,7 +174,10 @@ const Sidebar = ({ isMobile, isOpen, toggleSidebar }: SidebarProps) => {
         </nav>
 
         <div className="px-3 pt-2 mt-auto border-t border-sidebar-border/50">
-          <button className="sidebar-item w-full text-sidebar-foreground/70 hover:text-destructive">
+          <button 
+            onClick={handleLogout}
+            className="sidebar-item w-full text-sidebar-foreground/70 hover:text-destructive"
+          >
             <LogOut size={20} />
             <span className="text-sm">Logout</span>
           </button>

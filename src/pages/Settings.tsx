@@ -12,6 +12,8 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/use-auth';
 import DataTable from '@/components/ui/DataTable';
 import { formatDistanceToNow } from 'date-fns';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Camera } from 'lucide-react';
 
 type UserSettings = {
   theme: string;
@@ -31,12 +33,14 @@ type UserLog = {
 
 const Settings = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [userProfile, setUserProfile] = useState({
     full_names: '',
     email: '',
     phone: '',
     id_number: '',
     home_address: '',
+    profile_picture: '',
   });
   const [userSettings, setUserSettings] = useState<UserSettings>({
     theme: 'light',
@@ -76,6 +80,7 @@ const Settings = () => {
           phone: profileData.phone || '',
           id_number: profileData.id_number || '',
           home_address: profileData.home_address || '',
+          profile_picture: profileData.profile_picture || '',
         });
       }
       
@@ -148,6 +153,46 @@ const Settings = () => {
     }
   };
 
+  const handleUploadProfilePicture = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!user || !e.target.files || e.target.files.length === 0) return;
+    
+    const file = e.target.files[0];
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+    const filePath = `profile-pictures/${fileName}`;
+    
+    setUploading(true);
+    
+    try {
+      // Upload file to Supabase storage
+      const { error: uploadError } = await supabase
+        .storage
+        .from('users')
+        .upload(filePath, file);
+      
+      if (uploadError) throw uploadError;
+      
+      // Get public URL
+      const { data: { publicUrl } } = supabase
+        .storage
+        .from('users')
+        .getPublicUrl(filePath);
+      
+      // Update profile with the new picture URL
+      setUserProfile({
+        ...userProfile,
+        profile_picture: publicUrl
+      });
+      
+      toast.success('Profile picture uploaded successfully');
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      toast.error('Failed to upload profile picture');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -164,6 +209,7 @@ const Settings = () => {
           phone: userProfile.phone,
           id_number: userProfile.id_number,
           home_address: userProfile.home_address,
+          profile_picture: userProfile.profile_picture,
         })
         .eq('id', user.id);
       
@@ -280,6 +326,40 @@ const Settings = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  <div className="flex flex-col items-center mb-6">
+                    <div className="relative">
+                      <Avatar className="h-24 w-24 mb-2">
+                        {userProfile.profile_picture ? (
+                          <AvatarImage src={userProfile.profile_picture} alt="Profile" />
+                        ) : (
+                          <AvatarFallback className="text-2xl">
+                            {userProfile.full_names ? userProfile.full_names.charAt(0).toUpperCase() : '?'}
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      <div className="absolute bottom-0 right-0">
+                        <Label 
+                          htmlFor="picture" 
+                          className="bg-primary hover:bg-primary/90 text-white p-2 rounded-full cursor-pointer"
+                        >
+                          <Camera className="h-4 w-4" />
+                          <span className="sr-only">Upload picture</span>
+                        </Label>
+                        <Input 
+                          id="picture" 
+                          type="file" 
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleUploadProfilePicture}
+                          disabled={uploading}
+                        />
+                      </div>
+                    </div>
+                    {uploading && (
+                      <p className="text-sm text-muted-foreground mt-2">Uploading...</p>
+                    )}
+                  </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="fullNames">Full Name</Label>
                     <Input
