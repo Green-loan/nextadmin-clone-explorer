@@ -7,6 +7,8 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
+  userRole: number | null;
+  isConfirmed: boolean;
   signOut: () => Promise<void>;
 }
 
@@ -16,12 +18,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [userRole, setUserRole] = useState<number | null>(null);
+  const [isConfirmed, setIsConfirmed] = useState(false);
+
+  const fetchUserData = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('users_account')
+        .select('role, confirmed')
+        .eq('id', userId)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching user data:', error);
+        return;
+      }
+      
+      if (data) {
+        setUserRole(data.role || null);
+        setIsConfirmed(data.confirmed || false);
+      }
+    } catch (err) {
+      console.error('Error in fetchUserData:', err);
+    }
+  };
 
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        fetchUserData(session.user.id);
+      }
+      
       setIsLoading(false);
     });
 
@@ -29,6 +60,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      if (session?.user) {
+        fetchUserData(session.user.id);
+      } else {
+        setUserRole(null);
+        setIsConfirmed(false);
+      }
+      
       setIsLoading(false);
     });
 
@@ -39,12 +78,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setUserRole(null);
+    setIsConfirmed(false);
   };
 
   const value = {
     user,
     session,
     isLoading,
+    userRole,
+    isConfirmed,
     signOut,
   };
 

@@ -17,19 +17,63 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Protected route component
-const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, isLoading } = useAuth();
+// Protected route component with role-based access
+const ProtectedRoute = ({ 
+  children, 
+  allowedRoles = [1, 2, 3],
+  requireConfirmation = true 
+}: { 
+  children: React.ReactNode;
+  allowedRoles?: number[];
+  requireConfirmation?: boolean;
+}) => {
+  const { user, isLoading, userRole, isConfirmed } = useAuth();
   
   if (isLoading) {
     return <div className="h-screen w-full flex items-center justify-center">Loading...</div>;
   }
   
+  // Check if user is authenticated
   if (!user) {
     return <Navigate to="/signin" replace />;
   }
   
+  // Check if email confirmation is required and if the user is confirmed
+  if (requireConfirmation && !isConfirmed) {
+    return <Navigate to="/confirm-email" replace />;
+  }
+  
+  // Check if user has the required role
+  if (userRole !== null && !allowedRoles.includes(userRole)) {
+    // Redirect based on role
+    if (userRole === 1) {
+      return <Navigate to="/" replace />; // Admin dashboard
+    } else if (userRole === 3) {
+      return <Navigate to="/investors" replace />; // Investors site (you'll need to create this page)
+    } else {
+      return <Navigate to="/" replace />; // Default fallback
+    }
+  }
+  
   return <>{children}</>;
+};
+
+// Component to redirect based on user role
+const RoleBasedRedirect = () => {
+  const { userRole, isLoading } = useAuth();
+  
+  if (isLoading) {
+    return <div className="h-screen w-full flex items-center justify-center">Loading...</div>;
+  }
+  
+  if (userRole === 1) {
+    return <Navigate to="/" replace />; // Admin dashboard
+  } else if (userRole === 3) {
+    return <Navigate to="/investors" replace />; // Investors site
+  }
+  
+  // Default route if role is not recognized
+  return <Navigate to="/" replace />;
 };
 
 const App = () => (
@@ -47,12 +91,23 @@ const App = () => (
             {/* Add a redirect from /ConfirmEmail to /confirm-email */}
             <Route path="/ConfirmEmail" element={<Navigate to="/confirm-email" replace />} />
             
-            {/* Protected routes */}
-            <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/users" element={<ProtectedRoute><Users /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
-            <Route path="/reports" element={<ProtectedRoute><Reports /></ProtectedRoute>} />
-            <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
+            {/* Role-based redirect route */}
+            <Route path="/redirect" element={<RoleBasedRedirect />} />
+            
+            {/* Admin routes (role 1) */}
+            <Route path="/" element={<ProtectedRoute allowedRoles={[1]}><Dashboard /></ProtectedRoute>} />
+            <Route path="/users" element={<ProtectedRoute allowedRoles={[1]}><Users /></ProtectedRoute>} />
+            <Route path="/settings" element={<ProtectedRoute allowedRoles={[1]}><Settings /></ProtectedRoute>} />
+            <Route path="/reports" element={<ProtectedRoute allowedRoles={[1]}><Reports /></ProtectedRoute>} />
+            <Route path="/analytics" element={<ProtectedRoute allowedRoles={[1]}><Analytics /></ProtectedRoute>} />
+            
+            {/* Investor routes (role 3) - You'll need to create these pages */}
+            <Route path="/investors" element={<ProtectedRoute allowedRoles={[3]}>
+              <div className="p-8">
+                <h1 className="text-2xl font-bold">Investor Dashboard</h1>
+                <p className="mt-4">This is the investors site. This page needs to be created.</p>
+              </div>
+            </ProtectedRoute>} />
             
             {/* Catch-all for 404 */}
             <Route path="*" element={<NotFound />} />

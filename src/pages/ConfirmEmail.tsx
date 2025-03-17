@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -96,6 +97,7 @@ export default function ConfirmEmail() {
                 id: data.user.id,
                 email: data.user.email,
                 confirmed: true,
+                role: 3, // Default role for new users
                 created_at: new Date()
               }]);
               
@@ -221,6 +223,7 @@ export default function ConfirmEmail() {
               id: data.user.id,
               email: data.user.email,
               confirmed: true,
+              role: 3, // Default role for new users
               created_at: new Date()
             }]);
             

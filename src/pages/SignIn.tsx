@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -44,8 +44,37 @@ export default function SignIn() {
       }
 
       if (data.user) {
+        // Check if user is confirmed and get their role
+        const { data: userData, error: userError } = await supabase
+          .from('users_account')
+          .select('confirmed, role')
+          .eq('id', data.user.id)
+          .single();
+          
+        if (userError) {
+          console.error("Error fetching user data:", userError);
+          toast.success("Signed in successfully!");
+          navigate("/redirect"); // Use the redirect route to determine where to go
+          return;
+        }
+        
+        // If user is not confirmed, send them to confirm email page
+        if (!userData.confirmed) {
+          toast.warning("Please confirm your email address before continuing.");
+          navigate("/confirm-email");
+          return;
+        }
+        
         toast.success("Signed in successfully!");
-        navigate("/");
+        
+        // Redirect based on role
+        if (userData.role === 1) {
+          navigate("/"); // Admin dashboard
+        } else if (userData.role === 3) {
+          navigate("/investors"); // Investors site
+        } else {
+          navigate("/redirect"); // Default redirect
+        }
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to sign in");

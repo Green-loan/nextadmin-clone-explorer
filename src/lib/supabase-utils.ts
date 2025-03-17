@@ -21,6 +21,26 @@ export async function getUserById(userId: string) {
   return data;
 }
 
+export async function updateUserRole(userId: string, role: number) {
+  const { data, error } = await supabase
+    .from('users_account')
+    .update({ role })
+    .eq('id', userId);
+  
+  if (error) throw error;
+  return data;
+}
+
+export async function updateUserConfirmation(userId: string, confirmed: boolean) {
+  const { data, error } = await supabase
+    .from('users_account')
+    .update({ confirmed })
+    .eq('id', userId);
+  
+  if (error) throw error;
+  return data;
+}
+
 // Loan application functions
 export async function getLoanApplications() {
   const { data, error } = await supabase
