@@ -106,7 +106,7 @@ export default function SignUp() {
                   <FormLabel className="text-slate-200">Full Name</FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="John Doe" 
+                      placeholder="" 
                       {...field} 
                       className="bg-white/5 border-white/10 text-white placeholder:text-slate-400"
                     />
@@ -124,7 +124,7 @@ export default function SignUp() {
                   <FormLabel className="text-slate-200">Email</FormLabel>
                   <FormControl>
                     <Input 
-                      placeholder="you@example.com" 
+                      placeholder="" 
                       {...field} 
                       className="bg-white/5 border-white/10 text-white placeholder:text-slate-400"
                     />
@@ -144,7 +144,7 @@ export default function SignUp() {
                     <div className="relative">
                       <Input 
                         type={showPassword ? "text" : "password"} 
-                        placeholder="••••••••" 
+                        placeholder="" 
                         {...field} 
                         className="bg-white/5 border-white/10 text-white pr-10 placeholder:text-slate-400"
                       />
