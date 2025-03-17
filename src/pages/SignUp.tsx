@@ -49,6 +49,9 @@ export default function SignUp() {
       
       console.log("Submitting signup form with values:", { ...values, password: "REDACTED" });
       
+      // Map role string to number
+      const roleNumber = values.role === 'admin' ? 1 : 3; // admin=1, investor=3
+      
       // Sign up with Supabase auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: values.email,
@@ -80,7 +83,7 @@ export default function SignUp() {
             id: authData.user.id,
             email: values.email,
             full_names: values.fullName,
-            role: values.role === 'admin' ? 1 : 3, // Map role string to number (admin=1, investor=3)
+            role: roleNumber,
             confirmed: true, // Set to true by default
           },
         ]);
@@ -91,12 +94,14 @@ export default function SignUp() {
       }
 
       console.log("User profile created successfully");
+      
+      // Show success toast
       toast.success("Account created successfully!");
       
-      // Add a small delay before navigation to ensure toast is seen
+      // Navigate after showing the toast
       setTimeout(() => {
         navigate("/signin");
-      }, 2000);
+      }, 1500);
     } catch (error) {
       console.error("Signup error:", error);
       toast.error(error instanceof Error ? error.message : "Failed to create account");
