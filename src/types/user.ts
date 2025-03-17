@@ -16,14 +16,14 @@ export interface SupabaseUser {
   date_of_birth: string | null;
 }
 
-export type UserRole = 'Admin' | 'Editor' | 'User';
+export type UserRole = 'Admin' | 'Investor' | 'User';
 
 export function mapRoleNumberToString(role: number): UserRole {
   switch (role) {
     case 1:
       return 'Admin';
-    case 2:
-      return 'Editor';
+    case 3:
+      return 'Investor';
     default:
       return 'User';
   }

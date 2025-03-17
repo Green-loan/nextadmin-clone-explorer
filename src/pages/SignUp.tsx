@@ -60,7 +60,7 @@ export default function SignUp() {
               id: authData.user.id,
               email: values.email,
               full_names: values.fullName,
-              role: values.role === 'admin' ? 1 : values.role === 'editor' ? 2 : 3, // Map role string to number
+              role: values.role === 'admin' ? 1 : 3, // Map role string to number (admin=1, investor=3)
               password: '[PROTECTED]', // Don't store actual password, just a placeholder
             },
           ]);
@@ -89,7 +89,7 @@ export default function SignUp() {
             <img 
               src="/lovable-uploads/a2ba7d49-d862-44f2-ba79-09dfd459d0dd.png" 
               alt="Green Finance Logo" 
-              className="h-24 w-auto" // Increased from h-16 to h-24
+              className="h-24 w-auto"
             />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
@@ -176,8 +176,7 @@ export default function SignUp() {
                     </FormControl>
                     <SelectContent className="bg-slate-800 border-white/10 text-white">
                       <SelectItem value="admin" className="hover:bg-slate-700">Admin</SelectItem>
-                      <SelectItem value="editor" className="hover:bg-slate-700">Editor</SelectItem>
-                      <SelectItem value="user" className="hover:bg-slate-700">User</SelectItem>
+                      <SelectItem value="investor" className="hover:bg-slate-700">Investor</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage className="text-red-400" />
