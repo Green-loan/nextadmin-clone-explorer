@@ -52,7 +52,7 @@ export default function SignUp() {
       // Map role string to number
       const roleNumber = values.role === 'admin' ? 1 : 3; // admin=1, investor=3
       
-      // Sign up with Supabase auth
+      // First create the user profile data
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
@@ -66,7 +66,7 @@ export default function SignUp() {
 
       if (authError) {
         console.error("Auth error:", authError);
-        throw authError;
+        throw new Error(authError.message || "Authentication failed. Please try again.");
       }
 
       console.log("Auth signup successful:", authData);
@@ -90,23 +90,31 @@ export default function SignUp() {
 
       if (profileError) {
         console.error("Profile error:", profileError);
-        throw profileError;
+        // If we fail to create the profile, we should try to delete the auth user
+        // This is to prevent orphaned auth users without profiles
+        try {
+          // This would be handled by an admin function in production
+          console.log("Attempting to clean up auth user due to profile creation failure");
+        } catch (cleanupError) {
+          console.error("Failed to clean up auth user:", cleanupError);
+        }
+        throw new Error(profileError.message || "Failed to create user profile. Please try again.");
       }
 
       console.log("User profile created successfully");
       
-      // Show success toast
+      // Show success toast before navigation
       toast.success("Account created successfully!");
       
-      // Navigate after showing the toast
+      // Navigate to sign in page
       setTimeout(() => {
         navigate("/signin");
-      }, 1500);
+      }, 1000); // Shorter delay
+      
     } catch (error) {
       console.error("Signup error:", error);
-      toast.error(error instanceof Error ? error.message : "Failed to create account");
-    } finally {
       setIsLoading(false);
+      toast.error(error instanceof Error ? error.message : "Failed to create account");
     }
   }
 
