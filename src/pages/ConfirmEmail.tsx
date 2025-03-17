@@ -25,6 +25,10 @@ export default function ConfirmEmail() {
           Object.fromEntries(new URLSearchParams(location.hash.substring(1))) : 
           {};
         
+        // Log the current URL and parameters for debugging
+        console.log("Current URL:", window.location.href);
+        console.log("Hash parameters:", hashParams);
+        
         // Check for access_token in the hash (Supabase auth redirect)
         if (hashParams.access_token && hashParams.type === 'signup') {
           console.log("Found access token in URL hash, proceeding with verification");
@@ -33,10 +37,12 @@ export default function ConfirmEmail() {
           const { data, error: userError } = await supabase.auth.getUser();
           
           if (userError) {
+            console.error("User retrieval error:", userError);
             throw userError;
           }
           
           if (!data.user?.id) {
+            console.error("No user found in session");
             throw new Error("User not found. Please try signing in again.");
           }
           
@@ -49,6 +55,7 @@ export default function ConfirmEmail() {
             .eq('id', data.user.id);
             
           if (updateError) {
+            console.error("Database update error:", updateError);
             throw updateError;
           }
           
@@ -62,6 +69,8 @@ export default function ConfirmEmail() {
         const token = searchParams.get("token");
         const type = searchParams.get("type");
         
+        console.log("Token parameters:", { token, type });
+        
         if (!token || type !== "signup") {
           setError("Invalid confirmation link. Please request a new one.");
           return;
@@ -74,6 +83,7 @@ export default function ConfirmEmail() {
         });
         
         if (error) {
+          console.error("OTP verification error:", error);
           throw error;
         }
         
@@ -81,10 +91,12 @@ export default function ConfirmEmail() {
         const { data, error: userError } = await supabase.auth.getUser();
         
         if (userError) {
+          console.error("User retrieval error:", userError);
           throw userError;
         }
         
         if (!data.user?.id) {
+          console.error("No user found in session");
           throw new Error("User not found. Please try signing in again.");
         }
         
@@ -95,6 +107,7 @@ export default function ConfirmEmail() {
           .eq('id', data.user.id);
           
         if (updateError) {
+          console.error("Database update error:", updateError);
           throw updateError;
         }
         
