@@ -13,6 +13,8 @@ import {
   ChevronRight,
   Menu
 } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
+import { supabase } from '@/lib/supabase';
 
 type SidebarProps = {
   isMobile: boolean;
@@ -23,10 +25,29 @@ type SidebarProps = {
 const Sidebar = ({ isMobile, isOpen, toggleSidebar }: SidebarProps) => {
   const location = useLocation();
   const [mounted, setMounted] = useState(false);
+  const [userName, setUserName] = useState('User');
+  const { user } = useAuth();
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    
+    // Fetch user name when component mounts
+    const fetchUserName = async () => {
+      if (user) {
+        const { data, error } = await supabase
+          .from('users_account')
+          .select('full_names')
+          .eq('id', user.id)
+          .single();
+        
+        if (!error && data) {
+          setUserName(data.full_names || 'User');
+        }
+      }
+    };
+    
+    fetchUserName();
+  }, [user]);
 
   if (!mounted) return null;
 
@@ -99,7 +120,7 @@ const Sidebar = ({ isMobile, isOpen, toggleSidebar }: SidebarProps) => {
       )}>
         <div className="flex items-center justify-between h-16 px-4 mb-4">
           <div className="flex items-center">
-            <span className="text-xl font-semibold text-sidebar-foreground">NextAdmin</span>
+            <span className="text-xl font-semibold text-sidebar-foreground">{userName}</span>
           </div>
           <button 
             onClick={toggleSidebar} 

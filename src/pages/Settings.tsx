@@ -155,6 +155,8 @@ const Settings = () => {
     setIsLoading(true);
     
     try {
+      console.log('Updating profile with data:', userProfile);
+      
       const { error } = await supabase
         .from('users_account')
         .update({
@@ -165,7 +167,10 @@ const Settings = () => {
         })
         .eq('id', user.id);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase update error:', error);
+        throw error;
+      }
       
       await logUserAction('PROFILE_UPDATE', 'User updated their profile information');
       toast.success('Profile updated successfully');
