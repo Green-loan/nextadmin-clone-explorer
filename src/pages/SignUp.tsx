@@ -55,6 +55,10 @@ export default function SignUp() {
       // Map role string to number
       const roleNumber = values.role === 'admin' ? 1 : 3; // admin=1, investor=3
       
+      // Get the current domain for the redirect URL
+      const redirectUrl = `${window.location.origin}/confirm-email`;
+      console.log("Using redirect URL:", redirectUrl);
+      
       // Sign up with Supabase auth - this will send a confirmation email
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: values.email,
@@ -64,7 +68,7 @@ export default function SignUp() {
             full_name: values.fullName,
             role: values.role
           },
-          emailRedirectTo: window.location.origin + "/confirm-email"
+          emailRedirectTo: redirectUrl
         }
       });
 

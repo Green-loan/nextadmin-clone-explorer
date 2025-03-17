@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
 import { toast } from "sonner";
@@ -10,23 +10,63 @@ import { Mail, CheckCircle, XCircle } from "lucide-react";
 export default function ConfirmEmail() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const location = useLocation();
   const [isLoading, setIsLoading] = useState(true);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
-  // Extract token from URL parameters
-  const token = searchParams.get("token");
-  const type = searchParams.get("type");
-  
   useEffect(() => {
     const verifyToken = async () => {
-      if (!token || type !== "signup") {
-        setError("Invalid confirmation link. Please request a new one.");
-        setIsLoading(false);
-        return;
-      }
-      
       try {
+        setIsLoading(true);
+        
+        // Check if we have a hash in the URL (Supabase auth redirect)
+        const hashParams = location.hash ? 
+          Object.fromEntries(new URLSearchParams(location.hash.substring(1))) : 
+          {};
+        
+        // Check for access_token in the hash (Supabase auth redirect)
+        if (hashParams.access_token && hashParams.type === 'signup') {
+          console.log("Found access token in URL hash, proceeding with verification");
+          
+          // Get the current user
+          const { data, error: userError } = await supabase.auth.getUser();
+          
+          if (userError) {
+            throw userError;
+          }
+          
+          if (!data.user?.id) {
+            throw new Error("User not found. Please try signing in again.");
+          }
+          
+          console.log("User authenticated successfully:", data.user.email);
+          
+          // Update user_account in database to set confirmed = true
+          const { error: updateError } = await supabase
+            .from('users_account')
+            .update({ confirmed: true })
+            .eq('id', data.user.id);
+            
+          if (updateError) {
+            throw updateError;
+          }
+          
+          // Success
+          setIsConfirmed(true);
+          toast.success("Email verified successfully!");
+          return;
+        }
+        
+        // Original token-based verification flow
+        const token = searchParams.get("token");
+        const type = searchParams.get("type");
+        
+        if (!token || type !== "signup") {
+          setError("Invalid confirmation link. Please request a new one.");
+          return;
+        }
+        
         // Call Supabase to verify the token
         const { error } = await supabase.auth.verifyOtp({
           token_hash: token,
@@ -37,17 +77,22 @@ export default function ConfirmEmail() {
           throw error;
         }
         
-        // Update user_account in database to set confirmed = true
-        const { user } = await supabase.auth.getUser();
+        // Get the current user
+        const { data, error: userError } = await supabase.auth.getUser();
         
-        if (!user?.id) {
+        if (userError) {
+          throw userError;
+        }
+        
+        if (!data.user?.id) {
           throw new Error("User not found. Please try signing in again.");
         }
         
+        // Update user_account in database to set confirmed = true
         const { error: updateError } = await supabase
           .from('users_account')
           .update({ confirmed: true })
-          .eq('id', user.id);
+          .eq('id', data.user.id);
           
         if (updateError) {
           throw updateError;
@@ -65,7 +110,7 @@ export default function ConfirmEmail() {
     };
     
     verifyToken();
-  }, [token, type]);
+  }, [searchParams, location.hash]);
   
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-gradient-to-b from-slate-900 to-slate-800">
