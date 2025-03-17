@@ -60,10 +60,14 @@ const ProtectedRoute = ({
 
 // Component to redirect based on user role
 const RoleBasedRedirect = () => {
-  const { userRole, isLoading } = useAuth();
+  const { userRole, isLoading, user } = useAuth();
   
   if (isLoading) {
     return <div className="h-screen w-full flex items-center justify-center">Loading...</div>;
+  }
+  
+  if (!user) {
+    return <Navigate to="/signin" replace />;
   }
   
   if (userRole === 1) {
@@ -79,16 +83,15 @@ const RoleBasedRedirect = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <AuthProvider>
-        <Toaster />
-        <Sonner position="top-right" closeButton />
-        <BrowserRouter>
+      <BrowserRouter>
+        <AuthProvider>
+          <Toaster />
+          <Sonner position="top-right" closeButton />
           <Routes>
             {/* Auth routes */}
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/confirm-email" element={<ConfirmEmail />} />
-            {/* Add a redirect from /ConfirmEmail to /confirm-email */}
             <Route path="/ConfirmEmail" element={<Navigate to="/confirm-email" replace />} />
             
             {/* Role-based redirect route */}
@@ -112,8 +115,8 @@ const App = () => (
             {/* Catch-all for 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </BrowserRouter>
-      </AuthProvider>
+        </AuthProvider>
+      </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
 );

@@ -31,17 +31,26 @@ const Sidebar = ({ isMobile, isOpen, toggleSidebar }: SidebarProps) => {
   useEffect(() => {
     setMounted(true);
     
-    // Fetch user name when component mounts
+    // Fetch user name when component mounts or when user changes
     const fetchUserName = async () => {
       if (user) {
-        const { data, error } = await supabase
-          .from('users_account')
-          .select('full_names')
-          .eq('id', user.id)
-          .single();
-        
-        if (!error && data) {
-          setUserName(data.full_names || 'User');
+        try {
+          const { data, error } = await supabase
+            .from('users_account')
+            .select('full_names')
+            .eq('id', user.id)
+            .single();
+          
+          if (!error && data) {
+            setUserName(data.full_names || user.email?.split('@')[0] || 'User');
+          } else {
+            console.error('Error fetching user data:', error);
+            // Fallback to email or default
+            setUserName(user.email?.split('@')[0] || 'User');
+          }
+        } catch (err) {
+          console.error('Error in fetchUserName:', err);
+          setUserName(user.email?.split('@')[0] || 'User');
         }
       }
     };

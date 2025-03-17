@@ -2,7 +2,7 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Session, User } from '@supabase/supabase-js';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface AuthContextType {
   user: User | null;
@@ -22,6 +22,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [userRole, setUserRole] = useState<number | null>(null);
   const [isConfirmed, setIsConfirmed] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const fetchUserData = async (userId: string) => {
     try {
@@ -53,6 +54,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (session?.user) {
         fetchUserData(session.user.id);
+      } else {
+        setUserRole(null);
+        setIsConfirmed(false);
+        
+        // Only redirect to login if not already on an auth page
+        const isAuthPage = location.pathname.includes('/signin') || 
+                           location.pathname.includes('/signup') || 
+                           location.pathname.includes('/confirm-email');
+        
+        if (!isAuthPage) {
+          navigate('/signin');
+        }
       }
       
       setIsLoading(false);
@@ -68,8 +81,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setUserRole(null);
         setIsConfirmed(false);
-        // Redirect to login when session ends
-        navigate('/signin');
+        
+        // Redirect to login when session ends if not already on an auth page
+        const isAuthPage = location.pathname.includes('/signin') || 
+                           location.pathname.includes('/signup') || 
+                           location.pathname.includes('/confirm-email');
+        
+        if (!isAuthPage) {
+          navigate('/signin');
+        }
       }
       
       setIsLoading(false);
@@ -78,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 
   const signOut = async () => {
     try {
