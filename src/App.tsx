@@ -44,6 +44,8 @@ const App = () => (
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/confirm-email" element={<ConfirmEmail />} />
+            {/* Add a redirect from /ConfirmEmail to /confirm-email */}
+            <Route path="/ConfirmEmail" element={<Navigate to="/confirm-email" replace />} />
             
             {/* Protected routes */}
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

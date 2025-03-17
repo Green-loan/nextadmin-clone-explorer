@@ -18,6 +18,7 @@ export default function ConfirmEmail() {
     const verifyToken = async () => {
       try {
         setIsLoading(true);
+        console.log("Starting email verification process");
         
         // Check if we have a hash in the URL (Supabase auth redirect)
         const hashParams = location.hash ? 
@@ -26,7 +27,9 @@ export default function ConfirmEmail() {
         
         // Log the current URL and parameters for debugging
         console.log("Current URL:", window.location.href);
+        console.log("Current path:", location.pathname);
         console.log("Hash parameters:", hashParams);
+        console.log("Search parameters:", Object.fromEntries(searchParams.entries()));
         
         // Check for access_token in the hash (Supabase auth redirect)
         if (hashParams.access_token && hashParams.type === 'signup') {
@@ -115,8 +118,50 @@ export default function ConfirmEmail() {
         console.log("Token parameters:", { token, type });
         
         if (!token || type !== "signup") {
-          setError("Invalid confirmation link. Please request a new one.");
-          return;
+          // Handle case where user navigates directly to /confirm-email or /ConfirmEmail
+          if (location.pathname === "/confirm-email" || location.pathname === "/ConfirmEmail") {
+            console.log("Direct navigation to confirm email page detected, checking auth state");
+            
+            // Check if user is already authenticated
+            const { data: { user } } = await supabase.auth.getUser();
+            
+            if (user) {
+              console.log("User is authenticated, checking confirmation status");
+              
+              // Check if user is already confirmed in the database
+              const { data: userData, error: userDataError } = await supabase
+                .from('users_account')
+                .select('confirmed')
+                .eq('id', user.id)
+                .single();
+                
+              if (userDataError) {
+                console.error("Error checking user confirmation status:", userDataError);
+                setError("Unable to verify your account status. Please try signing in.");
+                setIsLoading(false);
+                return;
+              }
+              
+              if (userData && userData.confirmed) {
+                console.log("User is already confirmed");
+                setIsConfirmed(true);
+                setIsLoading(false);
+                return;
+              } else {
+                setError("Your email has not been verified yet. Please check your inbox for the verification link.");
+                setIsLoading(false);
+                return;
+              }
+            } else {
+              setError("No active session found. Please sign in or use the verification link sent to your email.");
+              setIsLoading(false);
+              return;
+            }
+          } else {
+            setError("Invalid confirmation link. Please request a new one.");
+            setIsLoading(false);
+            return;
+          }
         }
         
         // Call Supabase to verify the token
@@ -197,7 +242,7 @@ export default function ConfirmEmail() {
     };
     
     verifyToken();
-  }, [searchParams, location.hash]);
+  }, [searchParams, location.hash, location.pathname]);
   
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-gradient-to-b from-slate-900 to-slate-800">

@@ -4,3 +4,9 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Specifically handle direct navigation to /ConfirmEmail
+[[redirects]]
+  from = "/ConfirmEmail"
+  to = "/confirm-email"
+  status = 301
