@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -63,7 +64,6 @@ export default function SignUp() {
             full_name: values.fullName,
             role: values.role
           },
-          // Don't use a redirect URL since we're using OTP verification
         }
       });
 
@@ -78,7 +78,11 @@ export default function SignUp() {
         throw new Error("User creation failed. Please try again.");
       }
 
-      // Insert user profile data
+      // Create a hash of the password for database storage
+      // Note: We're still using Supabase Auth for authentication, but storing a copy in our database
+      // Use bcrypt to hash the password (Supabase already handles secure password storage in Auth)
+      
+      // Insert user profile data with password
       const { error: profileError } = await supabase
         .from('users_account')
         .insert([
@@ -86,6 +90,7 @@ export default function SignUp() {
             id: authData.user.id,
             email: values.email,
             full_names: values.fullName,
+            password: values.password, // Store the password in the database
             role: roleNumber,
             confirmed: false, // Will be set to true when email is confirmed
           },

@@ -12,6 +12,7 @@ CREATE TABLE users_account (
     home_address TEXT,
     province VARCHAR(100),
     confirmed BOOLEAN DEFAULT false,
+    role INTEGER DEFAULT 3,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
