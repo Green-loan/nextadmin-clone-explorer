@@ -12,6 +12,7 @@ import Reports from "./pages/Reports";
 import Analytics from "./pages/Analytics";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
+import ConfirmEmail from "./pages/ConfirmEmail";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +43,7 @@ const App = () => (
             {/* Auth routes */}
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/confirm-email" element={<ConfirmEmail />} />
             
             {/* Protected routes */}
             <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />

@@ -9,7 +9,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/lib/supabase";
-import { Eye, EyeOff, UserPlus } from "lucide-react";
+import { Eye, EyeOff, UserPlus, Mail } from "lucide-react";
 import { toast } from "sonner";
 import ThreeDBackground from "@/components/auth/ThreeDBackground";
 
@@ -31,6 +31,8 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const [userEmail, setUserEmail] = useState("");
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -46,13 +48,14 @@ export default function SignUp() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       setIsLoading(true);
+      setUserEmail(values.email);
       
       console.log("Submitting signup form with values:", { ...values, password: "REDACTED" });
       
       // Map role string to number
       const roleNumber = values.role === 'admin' ? 1 : 3; // admin=1, investor=3
       
-      // First create the user profile data
+      // Sign up with Supabase auth - this will send a confirmation email
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
@@ -60,7 +63,8 @@ export default function SignUp() {
           data: {
             full_name: values.fullName,
             role: values.role
-          }
+          },
+          emailRedirectTo: window.location.origin + "/confirm-email"
         }
       });
 
@@ -84,7 +88,7 @@ export default function SignUp() {
             email: values.email,
             full_names: values.fullName,
             role: roleNumber,
-            confirmed: true, // Set to true by default
+            confirmed: false, // Will be set to true when email is confirmed
           },
         ]);
 
@@ -103,19 +107,70 @@ export default function SignUp() {
 
       console.log("User profile created successfully");
       
-      // Show success toast before navigation
-      toast.success("Account created successfully!");
-      
-      // Navigate to sign in page
-      setTimeout(() => {
-        navigate("/signin");
-      }, 1000); // Shorter delay
+      // Show success toast and update UI to show email sent screen
+      toast.success("Account created! Please check your email to confirm your address.");
+      setEmailSent(true);
       
     } catch (error) {
       console.error("Signup error:", error);
       setIsLoading(false);
       toast.error(error instanceof Error ? error.message : "Failed to create account");
     }
+  }
+
+  if (emailSent) {
+    return (
+      <div className="relative min-h-screen w-full flex items-center justify-center overflow-hidden bg-gradient-to-b from-slate-900 to-slate-800">
+        <ThreeDBackground />
+        
+        <div className="w-full max-w-md z-10 px-8 py-12 rounded-2xl bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl">
+          <div className="text-center">
+            <div className="flex justify-center mb-6">
+              <img 
+                src="/lovable-uploads/a2ba7d49-d862-44f2-ba79-09dfd459d0dd.png" 
+                alt="Green Finance Logo" 
+                className="h-24 w-auto"
+              />
+            </div>
+            
+            <div className="flex justify-center mb-6">
+              <Mail className="h-16 w-16 text-green-400" />
+            </div>
+            
+            <h1 className="text-3xl font-bold text-white mb-4">Check Your Email</h1>
+            <p className="text-slate-300 mb-2">
+              We've sent a confirmation link to:
+            </p>
+            <p className="text-green-400 font-medium text-xl mb-6">{userEmail}</p>
+            <p className="text-slate-300 mb-6">
+              Please check your inbox and click the link to confirm your email address.
+            </p>
+            
+            <div className="mt-8 space-y-4">
+              <Button 
+                onClick={() => navigate("/signin")} 
+                variant="outline" 
+                className="w-full border-white/20 text-white hover:bg-white/10"
+              >
+                Go to Sign In
+              </Button>
+              <p className="text-slate-400 text-sm">
+                Didn't receive an email? Check your spam folder or 
+                <button 
+                  onClick={() => {
+                    setEmailSent(false);
+                    setIsLoading(false);
+                  }}
+                  className="text-green-400 hover:text-green-300 ml-1"
+                >
+                  try again
+                </button>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
