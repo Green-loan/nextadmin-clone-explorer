@@ -2,6 +2,7 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Session, User } from '@supabase/supabase-js';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
   user: User | null;
@@ -20,6 +21,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [userRole, setUserRole] = useState<number | null>(null);
   const [isConfirmed, setIsConfirmed] = useState(false);
+  const navigate = useNavigate();
 
   const fetchUserData = async (userId: string) => {
     try {
@@ -66,6 +68,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         setUserRole(null);
         setIsConfirmed(false);
+        // Redirect to login when session ends
+        navigate('/signin');
       }
       
       setIsLoading(false);
@@ -74,12 +78,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [navigate]);
 
   const signOut = async () => {
+    try {
+      // Log the logout action
+      await supabase.from('user_logs').insert({
+        user_id: user?.id,
+        action: 'LOGOUT',
+        description: 'User logged out',
+        ip_address: 'Unknown',
+        device_info: navigator.userAgent
+      });
+    } catch (error) {
+      console.error('Error logging user action:', error);
+    }
+    
     await supabase.auth.signOut();
     setUserRole(null);
     setIsConfirmed(false);
+    navigate('/signin');
   };
 
   const value = {

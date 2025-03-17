@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -28,6 +28,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Camera, Loader2 } from 'lucide-react';
 
 const userFormSchema = z.object({
   full_names: z.string().min(2, { message: 'Full name must be at least 2 characters.' }),
@@ -51,6 +52,8 @@ interface EditUserModalProps {
 const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) => {
   const { data: user, isLoading } = useUserDetails(userId);
   const updateUser = useUpdateUser();
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   const form = useForm<UserFormValues>({
     resolver: zodResolver(userFormSchema),
@@ -81,16 +84,22 @@ const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) => {
     }
   }, [user, form]);
 
+  const handlePictureClick = () => {
+    fileInputRef.current?.click();
+  };
+
   const handlePictureUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file || !userId) return;
 
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-    const filePath = `profile-pictures/${fileName}`;
-
+    setIsUploading(true);
+    
     try {
-      const { error: uploadError, data } = await supabase.storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${userId}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      const filePath = `profile-pictures/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
         .from('users')
         .upload(filePath, file);
 
@@ -112,6 +121,12 @@ const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) => {
         title: 'Upload failed',
         description: error instanceof Error ? error.message : 'Failed to upload profile picture',
       });
+    } finally {
+      setIsUploading(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -150,25 +165,42 @@ const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) => {
                     <FormLabel>Profile Picture</FormLabel>
                     <FormControl>
                       <div className="space-y-2">
-                        <div className="flex items-center space-x-4">
-                          <Avatar className="h-16 w-16">
-                            {field.value ? (
-                              <AvatarImage src={field.value} alt="Profile" />
-                            ) : (
-                              <AvatarFallback>
-                                {form.getValues().full_names
-                                  ? form.getValues().full_names.split(' ').map(n => n[0]).join('').toUpperCase()
-                                  : 'U'}
-                              </AvatarFallback>
-                            )}
-                          </Avatar>
-                          <Input 
+                        <div className="flex items-center justify-center">
+                          <div 
+                            className="relative cursor-pointer group" 
+                            onClick={handlePictureClick}
+                          >
+                            <Avatar className="h-20 w-20 border-2 border-border">
+                              {field.value ? (
+                                <AvatarImage src={field.value} alt="Profile" />
+                              ) : (
+                                <AvatarFallback>
+                                  {form.getValues().full_names
+                                    ? form.getValues().full_names.split(' ').map(n => n[0]).join('').toUpperCase()
+                                    : 'U'
+                                  }
+                                </AvatarFallback>
+                              )}
+                              <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                {isUploading ? (
+                                  <Loader2 className="h-5 w-5 text-white animate-spin" />
+                                ) : (
+                                  <Camera className="h-5 w-5 text-white" />
+                                )}
+                              </div>
+                            </Avatar>
+                          </div>
+                          <input 
                             type="file" 
+                            ref={fileInputRef}
                             accept="image/*"
                             onChange={handlePictureUpload}
-                            className="flex-1"
+                            className="hidden"
                           />
                         </div>
+                        <p className="text-xs text-center text-muted-foreground">
+                          Click the avatar to upload a new picture
+                        </p>
                       </div>
                     </FormControl>
                     <FormMessage />
@@ -304,7 +336,7 @@ const EditUserModal = ({ userId, isOpen, onClose }: EditUserModalProps) => {
                 <Button type="button" variant="outline" onClick={onClose} size="sm">
                   Cancel
                 </Button>
-                <Button type="submit" disabled={updateUser.isPending} size="sm">
+                <Button type="submit" disabled={updateUser.isPending || isUploading} size="sm">
                   {updateUser.isPending ? "Saving..." : "Save Changes"}
                 </Button>
               </DialogFooter>

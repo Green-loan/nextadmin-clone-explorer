@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Layout from '@/components/layout/Layout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +12,8 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/hooks/use-auth';
 import DataTable from '@/components/ui/DataTable';
 import { formatDistanceToNow } from 'date-fns';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Camera, Loader2 } from 'lucide-react';
 
 type UserSettings = {
   theme: string;
@@ -31,12 +33,15 @@ type UserLog = {
 
 const Settings = () => {
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadLoading, setUploadLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [userProfile, setUserProfile] = useState({
     full_names: '',
     email: '',
     phone: '',
     id_number: '',
     home_address: '',
+    profile_picture: '',
   });
   const [userSettings, setUserSettings] = useState<UserSettings>({
     theme: 'light',
@@ -76,6 +81,7 @@ const Settings = () => {
           phone: profileData.phone || '',
           id_number: profileData.id_number || '',
           home_address: profileData.home_address || '',
+          profile_picture: profileData.profile_picture || '',
         });
       }
       
@@ -148,6 +154,59 @@ const Settings = () => {
     }
   };
 
+  const handleProfilePictureClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !user) return;
+    
+    setUploadLoading(true);
+    try {
+      // Create a unique file name
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `profile-pictures/${fileName}`;
+      
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('users')
+        .upload(filePath, file);
+      
+      if (uploadError) throw uploadError;
+      
+      // Get the public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('users')
+        .getPublicUrl(filePath);
+      
+      // Update user profile with the new picture URL
+      const { error: updateError } = await supabase
+        .from('users_account')
+        .update({ profile_picture: publicUrl })
+        .eq('id', user.id);
+      
+      if (updateError) throw updateError;
+      
+      // Update local state
+      setUserProfile({ ...userProfile, profile_picture: publicUrl });
+      
+      await logUserAction('PROFILE_PICTURE_UPDATE', 'User updated their profile picture');
+      
+      toast.success('Profile picture uploaded successfully');
+    } catch (error) {
+      console.error('Error uploading profile picture:', error);
+      toast.error('Failed to upload profile picture');
+    } finally {
+      setUploadLoading(false);
+      // Clear the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -155,8 +214,7 @@ const Settings = () => {
     setIsLoading(true);
     
     try {
-      console.log('Updating profile with data:', userProfile);
-      
+      // Update the user profile in the database
       const { error } = await supabase
         .from('users_account')
         .update({
@@ -167,10 +225,7 @@ const Settings = () => {
         })
         .eq('id', user.id);
       
-      if (error) {
-        console.error('Supabase update error:', error);
-        throw error;
-      }
+      if (error) throw error;
       
       await logUserAction('PROFILE_UPDATE', 'User updated their profile information');
       toast.success('Profile updated successfully');
@@ -226,7 +281,6 @@ const Settings = () => {
     }
   };
 
-  // Log table columns
   const logColumns = [
     {
       accessorKey: 'action' as keyof UserLog,
@@ -280,6 +334,47 @@ const Settings = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
+                  <div className="flex flex-col items-center mb-6">
+                    <div 
+                      className="relative cursor-pointer group" 
+                      onClick={handleProfilePictureClick}
+                    >
+                      <Avatar className="h-24 w-24 border-2 border-border">
+                        {userProfile.profile_picture ? (
+                          <AvatarImage 
+                            src={userProfile.profile_picture} 
+                            alt="Profile" 
+                            className="object-cover"
+                          />
+                        ) : (
+                          <AvatarFallback className="text-xl">
+                            {userProfile.full_names
+                              ? userProfile.full_names.split(' ').map(n => n[0]).join('').toUpperCase()
+                              : 'U'
+                            }
+                          </AvatarFallback>
+                        )}
+                      </Avatar>
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                        {uploadLoading ? (
+                          <Loader2 className="h-6 w-6 text-white animate-spin" />
+                        ) : (
+                          <Camera className="h-6 w-6 text-white" />
+                        )}
+                      </div>
+                    </div>
+                    <input 
+                      type="file" 
+                      ref={fileInputRef}
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Click to upload a profile picture
+                    </p>
+                  </div>
+
                   <div className="space-y-2">
                     <Label htmlFor="fullNames">Full Name</Label>
                     <Input

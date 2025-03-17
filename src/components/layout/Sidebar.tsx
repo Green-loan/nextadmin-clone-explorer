@@ -26,7 +26,7 @@ const Sidebar = ({ isMobile, isOpen, toggleSidebar }: SidebarProps) => {
   const location = useLocation();
   const [mounted, setMounted] = useState(false);
   const [userName, setUserName] = useState('User');
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
 
   useEffect(() => {
     setMounted(true);
@@ -59,6 +59,10 @@ const Sidebar = ({ isMobile, isOpen, toggleSidebar }: SidebarProps) => {
     { path: '/reports', icon: <FileText size={20} />, label: 'Reports' },
     { path: '/settings', icon: <Settings size={20} />, label: 'Settings' },
   ];
+
+  const handleLogout = () => {
+    signOut();
+  };
 
   // Render collapsed or mobile sidebar
   if (!isOpen) {
@@ -93,7 +97,10 @@ const Sidebar = ({ isMobile, isOpen, toggleSidebar }: SidebarProps) => {
         </nav>
 
         <div className="px-2 pt-2 mt-auto">
-          <button className="sidebar-item justify-center py-3 w-full text-sidebar-foreground/70 hover:text-destructive">
+          <button 
+            onClick={handleLogout}
+            className="sidebar-item justify-center py-3 w-full text-sidebar-foreground/70 hover:text-destructive"
+          >
             <LogOut size={20} />
           </button>
         </div>
@@ -151,7 +158,10 @@ const Sidebar = ({ isMobile, isOpen, toggleSidebar }: SidebarProps) => {
         </nav>
 
         <div className="px-3 pt-2 mt-auto border-t border-sidebar-border/50">
-          <button className="sidebar-item w-full text-sidebar-foreground/70 hover:text-destructive">
+          <button 
+            onClick={handleLogout}
+            className="sidebar-item w-full text-sidebar-foreground/70 hover:text-destructive"
+          >
             <LogOut size={20} />
             <span className="text-sm">Logout</span>
           </button>
