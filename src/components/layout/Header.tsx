@@ -147,14 +147,14 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
                 {userName || 'My Account'}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="cursor-pointer" asChild>
-                <Link to="/settings">
+              <DropdownMenuItem className="cursor-pointer">
+                <Link to="/settings" className="flex items-center w-full">
                   <User className="mr-2 h-4 w-4" />
                   <span>Profile</span>
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem className="cursor-pointer" asChild>
-                <Link to="/settings">
+              <DropdownMenuItem className="cursor-pointer">
+                <Link to="/settings" className="flex items-center w-full">
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Settings</span>
                 </Link>
