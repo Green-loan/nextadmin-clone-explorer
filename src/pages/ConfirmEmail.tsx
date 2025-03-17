@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -33,6 +32,19 @@ export default function ConfirmEmail() {
         if (hashParams.access_token && hashParams.type === 'signup') {
           console.log("Found access token in URL hash, proceeding with verification");
           
+          // Set the session from the hash
+          const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+            access_token: hashParams.access_token,
+            refresh_token: hashParams.refresh_token || '',
+          });
+          
+          if (sessionError) {
+            console.error("Session error:", sessionError);
+            throw sessionError;
+          }
+          
+          console.log("Session set successfully:", sessionData);
+          
           // Get the current user
           const { data, error: userError } = await supabase.auth.getUser();
           
@@ -48,15 +60,46 @@ export default function ConfirmEmail() {
           
           console.log("User authenticated successfully:", data.user.email);
           
-          // Update user_account in database to set confirmed = true
-          const { error: updateError } = await supabase
+          // Check if user already exists in users_account table
+          const { data: existingUser, error: checkError } = await supabase
             .from('users_account')
-            .update({ confirmed: true })
-            .eq('id', data.user.id);
+            .select('*')
+            .eq('id', data.user.id)
+            .single();
             
-          if (updateError) {
-            console.error("Database update error:", updateError);
-            throw updateError;
+          if (checkError && checkError.code !== 'PGRST116') { // PGRST116 is "not found"
+            console.error("Error checking user:", checkError);
+            throw checkError;
+          }
+          
+          // If user exists, update confirmed status
+          if (existingUser) {
+            console.log("Existing user found, updating confirmed status");
+            const { error: updateError } = await supabase
+              .from('users_account')
+              .update({ confirmed: true })
+              .eq('id', data.user.id);
+              
+            if (updateError) {
+              console.error("Database update error:", updateError);
+              throw updateError;
+            }
+          } else {
+            // If user doesn't exist in the users_account table, create a new record
+            console.log("User not found in users_account table, creating new record");
+            const { error: insertError } = await supabase
+              .from('users_account')
+              .insert([{
+                id: data.user.id,
+                email: data.user.email,
+                confirmed: true,
+                created_at: new Date()
+              }]);
+              
+            if (insertError) {
+              console.error("Database insert error:", insertError);
+              throw insertError;
+            }
           }
           
           // Success
@@ -100,15 +143,46 @@ export default function ConfirmEmail() {
           throw new Error("User not found. Please try signing in again.");
         }
         
-        // Update user_account in database to set confirmed = true
-        const { error: updateError } = await supabase
+        // Check if user exists in users_account table
+        const { data: existingUser, error: checkError } = await supabase
           .from('users_account')
-          .update({ confirmed: true })
-          .eq('id', data.user.id);
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
           
-        if (updateError) {
-          console.error("Database update error:", updateError);
-          throw updateError;
+        if (checkError && checkError.code !== 'PGRST116') { // PGRST116 is "not found"
+          console.error("Error checking user:", checkError);
+          throw checkError;
+        }
+        
+        // If user exists, update confirmed status
+        if (existingUser) {
+          console.log("Existing user found, updating confirmed status");
+          const { error: updateError } = await supabase
+            .from('users_account')
+            .update({ confirmed: true })
+            .eq('id', data.user.id);
+            
+          if (updateError) {
+            console.error("Database update error:", updateError);
+            throw updateError;
+          }
+        } else {
+          // If user doesn't exist in the users_account table, create a new record
+          console.log("User not found in users_account table, creating new record");
+          const { error: insertError } = await supabase
+            .from('users_account')
+            .insert([{
+              id: data.user.id,
+              email: data.user.email,
+              confirmed: true,
+              created_at: new Date()
+            }]);
+            
+          if (insertError) {
+            console.error("Database insert error:", insertError);
+            throw insertError;
+          }
         }
         
         // Success
