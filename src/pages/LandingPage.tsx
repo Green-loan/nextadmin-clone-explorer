@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -218,7 +219,7 @@ const LandingPage = () => {
             <img 
               src="/lovable-uploads/b315bad7-f9f7-4aa6-a74d-1d8abc0d353d.png" 
               alt="Green Finance Logo" 
-              className="h-10 w-auto"
+              className="h-16 w-auto" 
             />
           </div>
           <div className="flex items-center gap-4">
@@ -756,7 +757,7 @@ const LandingPage = () => {
               <img 
                 src="/lovable-uploads/b315bad7-f9f7-4aa6-a74d-1d8abc0d353d.png" 
                 alt="Green Finance Logo" 
-                className="h-10 w-auto mb-4"
+                className="h-14 w-auto mb-4" 
               />
               <p className="text-gray-400 mt-2">
                 Your trusted partner for all your financial needs.
