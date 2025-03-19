@@ -39,6 +39,23 @@ interface StokvelaMember {
   created_at: string;
 }
 
+interface LoanApplicationsData {
+  pending: LoanApplication[];
+  approved: LoanApplication[];
+  rejected: LoanApplication[];
+}
+
+// Type guard function to check if data is of LoanApplicationsData type
+function isLoanApplicationsData(data: any): data is LoanApplicationsData {
+  return (
+    data &&
+    typeof data === 'object' &&
+    'pending' in data &&
+    'approved' in data &&
+    'rejected' in data
+  );
+}
+
 const UserDashboard = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
@@ -47,7 +64,7 @@ const UserDashboard = () => {
   const { data: loanApplications, isLoading: isLoadingLoans } = useQuery({
     queryKey: ['userLoanApplications', user?.id],
     queryFn: async () => {
-      if (!user) return [];
+      if (!user) return { pending: [], approved: [], rejected: [] };
       
       const { data: applications, error } = await supabase
         .from('loan_applications')
@@ -103,10 +120,10 @@ const UserDashboard = () => {
   
   // Calculate due amount from active loans
   const calculateTotalDueAmount = () => {
-    if (!loanApplications?.approved) return 0;
+    if (!loanApplications || !isLoanApplicationsData(loanApplications)) return 0;
     
     return loanApplications.approved.reduce((total, loan) => {
-      return total + (parseFloat(loan.amount) * 1.3999);
+      return total + (parseFloat(loan.amount.toString()) * 1.3999);
     }, 0);
   };
   
@@ -151,6 +168,9 @@ const UserDashboard = () => {
     }
   };
 
+  // Check if loan applications data is valid
+  const hasValidLoanData = isLoanApplicationsData(loanApplications);
+
   return (
     <Layout>
       <div className="grid gap-6">
@@ -183,7 +203,7 @@ const UserDashboard = () => {
                     R{calculateTotalDueAmount().toFixed(2)}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    From {loanApplications?.approved?.length || 0} active loans
+                    From {hasValidLoanData ? loanApplications.approved.length : 0} active loans
                   </p>
                 </CardContent>
               </Card>
@@ -195,7 +215,7 @@ const UserDashboard = () => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {loanApplications?.approved && loanApplications.approved.length > 0 ? (
+                  {hasValidLoanData && loanApplications.approved.length > 0 ? (
                     <>
                       <div className="text-2xl font-bold">
                         {formatDate(loanApplications.approved[0].due_date)}
@@ -255,7 +275,7 @@ const UserDashboard = () => {
                   ) : (
                     <div className="space-y-8">
                       {/* Pending Applications */}
-                      {loanApplications?.pending && loanApplications.pending.length > 0 && (
+                      {hasValidLoanData && loanApplications.pending.length > 0 && (
                         <div className="space-y-4">
                           <h3 className="text-sm font-medium">Pending Applications</h3>
                           {loanApplications.pending.slice(0, 3).map((loan: LoanApplication) => (
@@ -278,7 +298,7 @@ const UserDashboard = () => {
                       )}
                       
                       {/* Approved Loans */}
-                      {loanApplications?.approved && loanApplications.approved.length > 0 && (
+                      {hasValidLoanData && loanApplications.approved.length > 0 && (
                         <div className="space-y-4">
                           <h3 className="text-sm font-medium">Approved Loans</h3>
                           {loanApplications.approved.slice(0, 3).map((loan: LoanApplication) => (
@@ -301,8 +321,9 @@ const UserDashboard = () => {
                       )}
                       
                       {/* Show message if no loan activity */}
-                      {(!loanApplications?.pending || loanApplications.pending.length === 0) && 
-                       (!loanApplications?.approved || loanApplications.approved.length === 0) && (
+                      {(!hasValidLoanData || 
+                       (loanApplications.pending.length === 0 && 
+                        loanApplications.approved.length === 0)) && (
                         <div className="flex items-center justify-center h-32">
                           <p className="text-muted-foreground">No recent loan activity</p>
                         </div>
@@ -374,7 +395,7 @@ const UserDashboard = () => {
                             <div className="h-3 w-3 bg-muted rounded-full"></div>
                           </div>
                         </div>
-                      ) : loanApplications?.pending && loanApplications.pending.length > 0 ? (
+                      ) : hasValidLoanData && loanApplications.pending.length > 0 ? (
                         <div className="space-y-4">
                           {loanApplications.pending.map((loan: LoanApplication) => (
                             <div key={loan.id} className="border rounded-lg p-4">
@@ -418,7 +439,7 @@ const UserDashboard = () => {
                             <div className="h-3 w-3 bg-muted rounded-full"></div>
                           </div>
                         </div>
-                      ) : loanApplications?.approved && loanApplications.approved.length > 0 ? (
+                      ) : hasValidLoanData && loanApplications.approved.length > 0 ? (
                         <div className="space-y-4">
                           {loanApplications.approved.map((loan: LoanApplication) => (
                             <div key={loan.id} className="border rounded-lg p-4">
@@ -463,7 +484,7 @@ const UserDashboard = () => {
                             <div className="h-3 w-3 bg-muted rounded-full"></div>
                           </div>
                         </div>
-                      ) : loanApplications?.rejected && loanApplications.rejected.length > 0 ? (
+                      ) : hasValidLoanData && loanApplications.rejected.length > 0 ? (
                         <div className="space-y-4">
                           {loanApplications.rejected.map((loan: LoanApplication) => (
                             <div key={loan.id} className="border rounded-lg p-4">
@@ -616,7 +637,7 @@ const UserDashboard = () => {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {loanApplications?.pending && loanApplications.pending.length > 0 ? (
+                  {hasValidLoanData && loanApplications.pending.length > 0 ? (
                     <div className="space-y-6">
                       <p className="text-sm">
                         Please upload the required documents for your loan application. 
@@ -654,3 +675,4 @@ const UserDashboard = () => {
 };
 
 export default UserDashboard;
+
