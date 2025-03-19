@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import Dashboard from "./pages/Index";
 import Users from "./pages/Users";
 import Settings from "./pages/Settings";
@@ -85,41 +86,43 @@ const RoleBasedRedirect = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <BrowserRouter>
-        <AuthProvider>
-          <Toaster />
-          <Sonner position="top-right" closeButton />
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/home" element={<Navigate to="/" replace />} />
-            
-            {/* Auth routes */}
-            <Route path="/signin" element={<SignIn />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/confirm-email" element={<ConfirmEmail />} />
-            <Route path="/ConfirmEmail" element={<Navigate to="/confirm-email" replace />} />
-            
-            {/* Role-based redirect route */}
-            <Route path="/redirect" element={<RoleBasedRedirect />} />
-            
-            {/* Admin routes (role 1) */}
-            <Route path="/admin" element={<ProtectedRoute allowedRoles={[1]}><Dashboard /></ProtectedRoute>} />
-            <Route path="/users" element={<ProtectedRoute allowedRoles={[1]}><Users /></ProtectedRoute>} />
-            <Route path="/settings" element={<ProtectedRoute allowedRoles={[1]}><Settings /></ProtectedRoute>} />
-            <Route path="/reports" element={<ProtectedRoute allowedRoles={[1]}><Reports /></ProtectedRoute>} />
-            <Route path="/analytics" element={<ProtectedRoute allowedRoles={[1]}><Analytics /></ProtectedRoute>} />
-            
-            {/* User routes (role 3) */}
-            <Route path="/user-dashboard" element={<ProtectedRoute allowedRoles={[3]}>
-              <UserDashboard />
-            </ProtectedRoute>} />
-            
-            {/* Default redirection */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
+      <ThemeProvider>
+        <BrowserRouter>
+          <AuthProvider>
+            <Toaster />
+            <Sonner position="top-right" closeButton />
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/home" element={<Navigate to="/" replace />} />
+              
+              {/* Auth routes */}
+              <Route path="/signin" element={<SignIn />} />
+              <Route path="/signup" element={<SignUp />} />
+              <Route path="/confirm-email" element={<ConfirmEmail />} />
+              <Route path="/ConfirmEmail" element={<Navigate to="/confirm-email" replace />} />
+              
+              {/* Role-based redirect route */}
+              <Route path="/redirect" element={<RoleBasedRedirect />} />
+              
+              {/* Admin routes (role 1) */}
+              <Route path="/admin" element={<ProtectedRoute allowedRoles={[1]}><Dashboard /></ProtectedRoute>} />
+              <Route path="/users" element={<ProtectedRoute allowedRoles={[1]}><Users /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute allowedRoles={[1]}><Settings /></ProtectedRoute>} />
+              <Route path="/reports" element={<ProtectedRoute allowedRoles={[1]}><Reports /></ProtectedRoute>} />
+              <Route path="/analytics" element={<ProtectedRoute allowedRoles={[1]}><Analytics /></ProtectedRoute>} />
+              
+              {/* User routes (role 3) */}
+              <Route path="/user-dashboard" element={<ProtectedRoute allowedRoles={[3]}>
+                <UserDashboard />
+              </ProtectedRoute>} />
+              
+              {/* Default redirection */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </ThemeProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

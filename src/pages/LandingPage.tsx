@@ -1,13 +1,14 @@
-
 import { useState } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { format } from "date-fns";
 import { Link, useNavigate } from 'react-router-dom';
-import { CalendarIcon, DollarSign, Clock, Users, ArrowRight, CheckCircle, ChevronRight } from "lucide-react";
+import { CalendarIcon, DollarSign, Clock, Users, ArrowRight, CheckCircle, ChevronRight, FileText } from "lucide-react";
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase';
+import { ThemeToggle } from '@/components/theme/ThemeToggle';
+import DocumentUploadField from '@/components/loan/DocumentUploadField';
 
 import { Button } from "@/components/ui/button";
 import {
@@ -78,6 +79,10 @@ const FormSchema = z.object({
 
 const LandingPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [idDocument, setIdDocument] = useState<File | null>(null);
+  const [bankStatement, setBankStatement] = useState<File | null>(null);
+  const [idDocumentError, setIdDocumentError] = useState<string>('');
+  const [bankStatementError, setBankStatementError] = useState<string>('');
   const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof FormSchema>>({
@@ -97,6 +102,17 @@ const LandingPage = () => {
   });
 
   const onSubmit = async (data: z.infer<typeof FormSchema>) => {
+    // Validate document uploads
+    if (!idDocument) {
+      setIdDocumentError('ID document is required');
+      return;
+    }
+    
+    if (!bankStatement) {
+      setBankStatementError('Bank statement is required');
+      return;
+    }
+    
     setIsSubmitting(true);
     try {
       // Calculate due date
@@ -109,7 +125,7 @@ const LandingPage = () => {
       const returnAmount = (amount * 1.3999).toFixed(2);
       
       // Submit loan application to Supabase
-      const { error } = await supabase.from('loan_applications').insert({
+      const { data: loanData, error } = await supabase.from('loan_applications').insert({
         name: data.name,
         email: data.email,
         phone: data.phone,
@@ -123,10 +139,54 @@ const LandingPage = () => {
         purpose: data.purpose,
         due_date: dueDate.toISOString().split('T')[0],
         timestamp: new Date().toISOString(),
-      });
+      }).select('id').single();
       
       if (error) {
         throw error;
+      }
+      
+      // Upload documents
+      if (loanData?.id) {
+        // Upload ID document
+        const idExt = idDocument.name.split('.').pop();
+        const idPath = `loan-documents/${loanData.id}_id_document_${Date.now()}.${idExt}`;
+        
+        const { error: idUploadError } = await supabase.storage
+          .from('loans')
+          .upload(idPath, idDocument);
+        
+        if (idUploadError) throw idUploadError;
+        
+        // Get public URL for ID document
+        const { data: idUrlData } = supabase.storage
+          .from('loans')
+          .getPublicUrl(idPath);
+        
+        // Upload bank statement
+        const bankExt = bankStatement.name.split('.').pop();
+        const bankPath = `loan-documents/${loanData.id}_bank_statement_${Date.now()}.${bankExt}`;
+        
+        const { error: bankUploadError } = await supabase.storage
+          .from('loans')
+          .upload(bankPath, bankStatement);
+        
+        if (bankUploadError) throw bankUploadError;
+        
+        // Get public URL for bank statement
+        const { data: bankUrlData } = supabase.storage
+          .from('loans')
+          .getPublicUrl(bankPath);
+        
+        // Update loan application with document URLs
+        const { error: updateError } = await supabase
+          .from('loan_applications')
+          .update({
+            id_document_url: idUrlData?.publicUrl,
+            bank_statement_url: bankUrlData?.publicUrl,
+          })
+          .eq('id', loanData.id);
+        
+        if (updateError) throw updateError;
       }
       
       // Show success message
@@ -136,6 +196,8 @@ const LandingPage = () => {
       
       // Reset form
       form.reset();
+      setIdDocument(null);
+      setBankStatement(null);
       
     } catch (error) {
       console.error("Error submitting loan application:", error);
@@ -153,10 +215,14 @@ const LandingPage = () => {
       <header className="py-6 px-4 md:px-6 bg-white dark:bg-gray-950 shadow-sm">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center gap-2">
-            <DollarSign className="h-6 w-6 text-green-600" />
-            <h1 className="text-2xl font-bold text-green-600">Green Finance</h1>
+            <img 
+              src="/lovable-uploads/b315bad7-f9f7-4aa6-a74d-1d8abc0d353d.png" 
+              alt="Green Finance Logo" 
+              className="h-10 w-auto"
+            />
           </div>
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             <Link to="/signin">
               <Button variant="outline" size="sm">Sign In</Button>
             </Link>
@@ -172,7 +238,7 @@ const LandingPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-6">
             <h1 className="text-4xl md:text-5xl font-bold leading-tight">
-              Need a loan? <span className="text-green-600">We've got you covered</span>
+              Need a loan? <span className="text-green-600 dark:text-green-400">We've got you covered</span>
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-400">
               Green Finance offers quick and easy loans with competitive interest rates. Apply today and get approved in minutes.
@@ -207,9 +273,9 @@ const LandingPage = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="hover-scale">
+            <Card className="hover-scale dark:border-gray-800">
               <CardHeader>
-                <Clock className="h-10 w-10 text-green-600 mb-2" />
+                <Clock className="h-10 w-10 text-green-600 dark:text-green-400 mb-2" />
                 <CardTitle>Quick Approval</CardTitle>
                 <CardDescription>
                   Get your loan approved in as little as 24 hours.
@@ -217,9 +283,9 @@ const LandingPage = () => {
               </CardHeader>
             </Card>
             
-            <Card className="hover-scale">
+            <Card className="hover-scale dark:border-gray-800">
               <CardHeader>
-                <DollarSign className="h-10 w-10 text-green-600 mb-2" />
+                <DollarSign className="h-10 w-10 text-green-600 dark:text-green-400 mb-2" />
                 <CardTitle>Competitive Rates</CardTitle>
                 <CardDescription>
                   Our loan rates are designed to be affordable and transparent.
@@ -227,9 +293,9 @@ const LandingPage = () => {
               </CardHeader>
             </Card>
             
-            <Card className="hover-scale">
+            <Card className="hover-scale dark:border-gray-800">
               <CardHeader>
-                <Users className="h-10 w-10 text-green-600 mb-2" />
+                <Users className="h-10 w-10 text-green-600 dark:text-green-400 mb-2" />
                 <CardTitle>Dedicated Support</CardTitle>
                 <CardDescription>
                   Our team is here to help you every step of the way.
@@ -243,7 +309,7 @@ const LandingPage = () => {
       {/* Application Form */}
       <section id="application-form" className="py-16 px-4 md:px-6">
         <div className="container mx-auto">
-          <div className="max-w-3xl mx-auto bg-white dark:bg-gray-950 rounded-xl shadow-xl p-6 md:p-10">
+          <div className="max-w-3xl mx-auto bg-white dark:bg-gray-950 rounded-xl shadow-xl p-6 md:p-10 dark:border dark:border-gray-800">
             <div className="space-y-4 mb-8">
               <h2 className="text-3xl font-bold">Apply for a Loan</h2>
               <p className="text-gray-600 dark:text-gray-400">
@@ -254,6 +320,8 @@ const LandingPage = () => {
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  
+                  
                   <FormField
                     control={form.control}
                     name="name"
@@ -506,6 +574,39 @@ const LandingPage = () => {
                       </FormItem>
                     )}
                   />
+
+                  {/* Document Upload Fields */}
+                  <div className="col-span-1 md:col-span-2">
+                    <h3 className="text-lg font-medium mb-4">Required Documents</h3>
+                  </div>
+                  
+                  <div className="col-span-1 md:col-span-2">
+                    <DocumentUploadField
+                      label="ID Document"
+                      description="Upload a scanned copy of your ID or passport (PDF, JPG, PNG)"
+                      id="id-document"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={(file) => {
+                        setIdDocument(file);
+                        setIdDocumentError('');
+                      }}
+                      error={idDocumentError}
+                    />
+                  </div>
+                  
+                  <div className="col-span-1 md:col-span-2">
+                    <DocumentUploadField
+                      label="3 Months Bank Statement"
+                      description="Upload your last 3 months bank statement (PDF format preferred)"
+                      id="bank-statement"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={(file) => {
+                        setBankStatement(file);
+                        setBankStatementError('');
+                      }}
+                      error={bankStatementError}
+                    />
+                  </div>
                 </div>
                 
                 <Button type="submit" className="w-full" disabled={isSubmitting}>
@@ -530,7 +631,7 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="flex flex-col items-center text-center space-y-4">
               <div className="bg-green-100 dark:bg-green-900 rounded-full p-4">
-                <span className="text-green-600 dark:text-green-300 text-xl font-bold">1</span>
+                <span className="text-green-600 dark:text-green-400 text-xl font-bold">1</span>
               </div>
               <h3 className="text-xl font-semibold">Apply Online</h3>
               <p className="text-gray-600 dark:text-gray-400">
@@ -540,7 +641,7 @@ const LandingPage = () => {
             
             <div className="flex flex-col items-center text-center space-y-4">
               <div className="bg-green-100 dark:bg-green-900 rounded-full p-4">
-                <span className="text-green-600 dark:text-green-300 text-xl font-bold">2</span>
+                <span className="text-green-600 dark:text-green-400 text-xl font-bold">2</span>
               </div>
               <h3 className="text-xl font-semibold">Quick Verification</h3>
               <p className="text-gray-600 dark:text-gray-400">
@@ -550,7 +651,7 @@ const LandingPage = () => {
             
             <div className="flex flex-col items-center text-center space-y-4">
               <div className="bg-green-100 dark:bg-green-900 rounded-full p-4">
-                <span className="text-green-600 dark:text-green-300 text-xl font-bold">3</span>
+                <span className="text-green-600 dark:text-green-400 text-xl font-bold">3</span>
               </div>
               <h3 className="text-xl font-semibold">Get Approved</h3>
               <p className="text-gray-600 dark:text-gray-400">
@@ -560,7 +661,7 @@ const LandingPage = () => {
             
             <div className="flex flex-col items-center text-center space-y-4">
               <div className="bg-green-100 dark:bg-green-900 rounded-full p-4">
-                <span className="text-green-600 dark:text-green-300 text-xl font-bold">4</span>
+                <span className="text-green-600 dark:text-green-400 text-xl font-bold">4</span>
               </div>
               <h3 className="text-xl font-semibold">Receive Funds</h3>
               <p className="text-gray-600 dark:text-gray-400">
@@ -571,6 +672,8 @@ const LandingPage = () => {
         </div>
       </section>
 
+      
+      
       {/* Testimonials */}
       <section className="py-16 px-4 md:px-6">
         <div className="container mx-auto space-y-12">
@@ -582,7 +685,7 @@ const LandingPage = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <Card className="hover-scale">
+            <Card className="hover-scale dark:border-gray-800">
               <CardContent className="pt-6">
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
@@ -603,7 +706,7 @@ const LandingPage = () => {
               </CardContent>
             </Card>
             
-            <Card className="hover-scale">
+            <Card className="hover-scale dark:border-gray-800">
               <CardContent className="pt-6">
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
@@ -624,7 +727,7 @@ const LandingPage = () => {
               </CardContent>
             </Card>
             
-            <Card className="hover-scale">
+            <Card className="hover-scale dark:border-gray-800">
               <CardContent className="pt-6">
                 <div className="space-y-4">
                   <div className="flex items-center gap-2">
@@ -633,109 +736,3 @@ const LandingPage = () => {
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
                       </svg>
                     ))}
-                  </div>
-                  <p className="text-gray-600 dark:text-gray-400">
-                    "The customer service team was extremely helpful. They guided me through the process and answered all my questions."
-                  </p>
-                  <div>
-                    <p className="font-semibold">Linda K.</p>
-                    <p className="text-sm text-gray-500">Teacher</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      {/* Call to Action */}
-      <section className="py-16 px-4 md:px-6 bg-green-600 text-white">
-        <div className="container mx-auto text-center space-y-6">
-          <h2 className="text-3xl font-bold">Ready to get started?</h2>
-          <p className="text-lg max-w-2xl mx-auto">
-            Apply for a loan today and take the first step towards achieving your financial goals.
-          </p>
-          <Button 
-            size="lg" 
-            variant="secondary" 
-            className="bg-white text-green-600 hover:bg-gray-100"
-            onClick={() => document.getElementById('application-form')?.scrollIntoView({ behavior: 'smooth' })}
-          >
-            Apply Now
-          </Button>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="py-12 px-4 md:px-6 bg-gray-900 text-gray-400">
-        <div className="container mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <DollarSign className="h-6 w-6 text-green-600" />
-                <h2 className="text-xl font-bold text-white">Green Finance</h2>
-              </div>
-              <p className="text-sm">
-                Providing financial solutions for all your needs.
-              </p>
-            </div>
-            
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white">Quick Links</h3>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link to="/" className="hover:text-green-500 transition-colors">Home</Link>
-                </li>
-                <li>
-                  <Link to="/about" className="hover:text-green-500 transition-colors">About Us</Link>
-                </li>
-                <li>
-                  <Link to="/services" className="hover:text-green-500 transition-colors">Services</Link>
-                </li>
-                <li>
-                  <Link to="/contact" className="hover:text-green-500 transition-colors">Contact</Link>
-                </li>
-              </ul>
-            </div>
-            
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white">Legal</h3>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <Link to="/terms" className="hover:text-green-500 transition-colors">Terms of Service</Link>
-                </li>
-                <li>
-                  <Link to="/privacy" className="hover:text-green-500 transition-colors">Privacy Policy</Link>
-                </li>
-                <li>
-                  <Link to="/disclaimer" className="hover:text-green-500 transition-colors">Disclaimer</Link>
-                </li>
-              </ul>
-            </div>
-            
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white">Contact Us</h3>
-              <ul className="space-y-2 text-sm">
-                <li>
-                  <span className="text-green-500">Email:</span> greenservice.loan@gmail.com
-                </li>
-                <li>
-                  <span className="text-green-500">Phone:</span> +27 640 5195 93
-                </li>
-                <li>
-                  <span className="text-green-500">Address:</span> Johannesburg, South Africa
-                </li>
-              </ul>
-            </div>
-          </div>
-          
-          <div className="mt-12 pt-8 border-t border-gray-800 text-center text-sm">
-            <p>&copy; {new Date().getFullYear()} Green Finance. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
-    </div>
-  );
-};
-
-export default LandingPage;
