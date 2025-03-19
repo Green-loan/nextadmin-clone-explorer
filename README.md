@@ -21,6 +21,7 @@ The platform leverages AI for document verification, fraud detection, and loan a
 - **Top Clients**: Highlight users who frequently interact and pay on time
 - **Financial Overview**: Display net worth, available funds, and other financial metrics
 - **Settings**: Allow users to manage their profiles and preferences
+- **Document Upload**: Users can upload required documents for loan verification
 
 ### 3. Admin Dashboard
 - **Loan Applications**: View and manage all loan applications, including uploaded documents
@@ -100,6 +101,34 @@ The platform leverages AI for document verification, fraud detection, and loan a
 
 ### URL
 **URL**: https://lovable.dev/projects/0ab6ace3-ff47-4625-9620-645b41493729
+
+### Database Setup
+
+This project requires several database tables and storage configurations in Supabase:
+
+1. **Users Account Table**: Stores user information, roles, and authentication data
+2. **Loan Applications Table**: Stores pending loan applications
+3. **Approved Loans Table**: Stores approved loan applications
+4. **Rejected Loans Table**: Stores rejected loan applications
+5. **Stokvela Members Table**: Manages Stokvela group membership and payment schedules
+6. **System Settings Table**: Stores global system settings
+7. **Storage Buckets**: 
+   - `users` bucket for profile pictures
+   - `loans` bucket for loan application documents
+
+Execute the SQL scripts in the `src/lib/sql` directory to set up the necessary database structure.
+
+### Storage Buckets Setup
+
+In your Supabase project, create the following storage buckets:
+
+1. **users**: For storing user profile pictures
+   - Create a folder named `profile-pictures` within this bucket
+   - Add appropriate storage policies as defined in `profile_storage.sql`
+
+2. **loans**: For storing loan application documents
+   - Create a folder named `loan-documents` within this bucket
+   - Add appropriate storage policies as defined in `document_storage.sql`
 
 ### How can I edit this code?
 

@@ -14,6 +14,8 @@ import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import ConfirmEmail from "./pages/ConfirmEmail";
 import NotFound from "./pages/NotFound";
+import LandingPage from "./pages/LandingPage";
+import UserDashboard from "./pages/UserDashboard";
 
 const queryClient = new QueryClient();
 
@@ -49,7 +51,7 @@ const ProtectedRoute = ({
     if (userRole === 1) {
       return <Navigate to="/" replace />; // Admin dashboard
     } else if (userRole === 3) {
-      return <Navigate to="/investors" replace />; // Investors site
+      return <Navigate to="/user-dashboard" replace />; // User dashboard
     } else {
       return <Navigate to="/" replace />; // Default fallback
     }
@@ -73,7 +75,7 @@ const RoleBasedRedirect = () => {
   if (userRole === 1) {
     return <Navigate to="/" replace />; // Admin dashboard
   } else if (userRole === 3) {
-    return <Navigate to="/investors" replace />; // Investors site
+    return <Navigate to="/user-dashboard" replace />; // User dashboard
   }
   
   // Default route if role is not recognized
@@ -88,6 +90,9 @@ const App = () => (
           <Toaster />
           <Sonner position="top-right" closeButton />
           <Routes>
+            {/* Public routes */}
+            <Route path="/home" element={<LandingPage />} />
+            
             {/* Auth routes */}
             <Route path="/signin" element={<SignIn />} />
             <Route path="/signup" element={<SignUp />} />
@@ -104,15 +109,12 @@ const App = () => (
             <Route path="/reports" element={<ProtectedRoute allowedRoles={[1]}><Reports /></ProtectedRoute>} />
             <Route path="/analytics" element={<ProtectedRoute allowedRoles={[1]}><Analytics /></ProtectedRoute>} />
             
-            {/* Investor routes (role 3) */}
-            <Route path="/investors" element={<ProtectedRoute allowedRoles={[3]}>
-              <div className="p-8">
-                <h1 className="text-2xl font-bold">Investor Dashboard</h1>
-                <p className="mt-4">This is the investors site. This page needs to be created.</p>
-              </div>
+            {/* User routes (role 3) */}
+            <Route path="/user-dashboard" element={<ProtectedRoute allowedRoles={[3]}>
+              <UserDashboard />
             </ProtectedRoute>} />
             
-            {/* Catch-all for 404 */}
+            {/* Default redirection */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
