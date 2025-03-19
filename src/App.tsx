@@ -91,7 +91,8 @@ const App = () => (
           <Sonner position="top-right" closeButton />
           <Routes>
             {/* Public routes */}
-            <Route path="/home" element={<LandingPage />} />
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/home" element={<Navigate to="/" replace />} />
             
             {/* Auth routes */}
             <Route path="/signin" element={<SignIn />} />
@@ -103,7 +104,7 @@ const App = () => (
             <Route path="/redirect" element={<RoleBasedRedirect />} />
             
             {/* Admin routes (role 1) */}
-            <Route path="/" element={<ProtectedRoute allowedRoles={[1]}><Dashboard /></ProtectedRoute>} />
+            <Route path="/admin" element={<ProtectedRoute allowedRoles={[1]}><Dashboard /></ProtectedRoute>} />
             <Route path="/users" element={<ProtectedRoute allowedRoles={[1]}><Users /></ProtectedRoute>} />
             <Route path="/settings" element={<ProtectedRoute allowedRoles={[1]}><Settings /></ProtectedRoute>} />
             <Route path="/reports" element={<ProtectedRoute allowedRoles={[1]}><Reports /></ProtectedRoute>} />

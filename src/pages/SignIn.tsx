@@ -8,7 +8,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/lib/supabase";
-import { Eye, EyeOff, LogIn } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, LogIn } from "lucide-react";
 import { toast } from "sonner";
 import ThreeDBackground from "@/components/auth/ThreeDBackground";
 
@@ -69,9 +69,9 @@ export default function SignIn() {
         
         // Redirect based on role
         if (userData.role === 1) {
-          navigate("/"); // Admin dashboard
+          navigate("/admin"); // Admin dashboard
         } else if (userData.role === 3) {
-          navigate("/investors"); // Investors site
+          navigate("/user-dashboard"); // Investors site
         } else {
           navigate("/redirect"); // Default redirect
         }
@@ -88,12 +88,24 @@ export default function SignIn() {
       <ThreeDBackground />
       
       <div className="w-full max-w-md z-10 px-8 py-12 rounded-2xl bg-white/10 backdrop-blur-lg border border-white/20 shadow-xl">
+        <div className="absolute top-6 left-6">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="text-white hover:bg-white/10" 
+            onClick={() => navigate('/')}
+            aria-label="Back to landing page"
+          >
+            <ArrowLeft size={24} />
+          </Button>
+        </div>
+        
         <div className="mb-8 text-center">
           <div className="flex justify-center mb-6">
             <img 
               src="/lovable-uploads/a2ba7d49-d862-44f2-ba79-09dfd459d0dd.png" 
               alt="Green Finance Logo" 
-              className="h-24 w-auto" // Increased from h-16 to h-24
+              className="h-24 w-auto" 
             />
           </div>
           <h1 className="text-3xl font-bold text-white mb-2">Welcome Back</h1>
