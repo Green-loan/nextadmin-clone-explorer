@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -321,7 +320,6 @@ const LandingPage = () => {
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  
                   
                   <FormField
                     control={form.control}
@@ -805,4 +803,3 @@ const LandingPage = () => {
 };
 
 export default LandingPage;
-
