@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -672,8 +673,6 @@ const LandingPage = () => {
         </div>
       </section>
 
-      
-      
       {/* Testimonials */}
       <section className="py-16 px-4 md:px-6">
         <div className="container mx-auto space-y-12">
@@ -736,3 +735,74 @@ const LandingPage = () => {
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
                       </svg>
                     ))}
+                  </div>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    "Green Finance made my home renovation possible. Their team was supportive throughout the entire process."
+                  </p>
+                  <div>
+                    <p className="font-semibold">Michael T.</p>
+                    <p className="text-sm text-gray-500">Homeowner</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-12 px-4 md:px-6">
+        <div className="container mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+              <img 
+                src="/lovable-uploads/b315bad7-f9f7-4aa6-a74d-1d8abc0d353d.png" 
+                alt="Green Finance Logo" 
+                className="h-10 w-auto mb-4"
+              />
+              <p className="text-gray-400 mt-2">
+                Your trusted partner for all your financial needs.
+              </p>
+            </div>
+            
+            <div>
+              <h3 className="text-xl font-semibold mb-4">Quick Links</h3>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">About Us</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Services</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">FAQ</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Contact</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="text-xl font-semibold mb-4">Legal</h3>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Terms of Service</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Privacy Policy</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Cookie Policy</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h3 className="text-xl font-semibold mb-4">Contact Us</h3>
+              <address className="not-italic text-gray-400 space-y-2">
+                <p>123 Finance Street</p>
+                <p>Johannesburg, South Africa</p>
+                <p>Email: info@greenfinance.com</p>
+                <p>Phone: +27 123 456 7890</p>
+              </address>
+            </div>
+          </div>
+          
+          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+            <p>&copy; {new Date().getFullYear()} Green Finance. All rights reserved.</p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default LandingPage;
+
