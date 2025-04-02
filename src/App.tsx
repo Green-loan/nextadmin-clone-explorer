@@ -92,7 +92,7 @@ const App = () => (
             <Toaster />
             <Sonner position="top-right" closeButton />
             <Routes>
-              {/* Public routes */}
+              {/* Landing Page as default route */}
               <Route path="/" element={<LandingPage />} />
               <Route path="/home" element={<Navigate to="/" replace />} />
               
@@ -112,7 +112,7 @@ const App = () => (
               <Route path="/reports" element={<ProtectedRoute allowedRoles={[1]}><Reports /></ProtectedRoute>} />
               <Route path="/analytics" element={<ProtectedRoute allowedRoles={[1]}><Analytics /></ProtectedRoute>} />
               
-              {/* User routes (role 3) */}
+              {/* User routes (role 3) - Make dashboard accessible directly */}
               <Route path="/user-dashboard" element={<ProtectedRoute allowedRoles={[3]}>
                 <UserDashboard />
               </ProtectedRoute>} />
