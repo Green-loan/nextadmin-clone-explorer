@@ -54,6 +54,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Helper function to check if the current path is an auth page
+  const isAuthPage = () => {
+    const path = location.pathname;
+    return path === '/' || 
+           path === '/signin' || 
+           path === '/signup' || 
+           path === '/confirm-email' ||
+           path === '/home';
+  };
+
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -66,12 +76,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUserRole(null);
         setIsConfirmed(false);
         
-        // Only redirect to login if not already on an auth page
-        const isAuthPage = location.pathname.includes('/signin') || 
-                           location.pathname.includes('/signup') || 
-                           location.pathname.includes('/confirm-email');
-        
-        if (!isAuthPage) {
+        // Only redirect to login if not already on an auth page and not on landing page
+        if (!isAuthPage()) {
           navigate('/signin');
         }
       }
@@ -90,12 +96,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUserRole(null);
         setIsConfirmed(false);
         
-        // Redirect to login when session ends if not already on an auth page
-        const isAuthPage = location.pathname.includes('/signin') || 
-                           location.pathname.includes('/signup') || 
-                           location.pathname.includes('/confirm-email');
-        
-        if (!isAuthPage) {
+        // Only redirect to login if not already on an auth page and not on landing page
+        if (!isAuthPage()) {
           navigate('/signin');
         }
       }

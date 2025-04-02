@@ -50,7 +50,7 @@ const ProtectedRoute = ({
   if (userRole !== null && !allowedRoles.includes(userRole)) {
     // Redirect based on role
     if (userRole === 1) {
-      return <Navigate to="/" replace />; // Admin dashboard
+      return <Navigate to="/admin" replace />; // Admin dashboard
     } else if (userRole === 3) {
       return <Navigate to="/user-dashboard" replace />; // User dashboard
     } else {
@@ -74,7 +74,7 @@ const RoleBasedRedirect = () => {
   }
   
   if (userRole === 1) {
-    return <Navigate to="/" replace />; // Admin dashboard
+    return <Navigate to="/admin" replace />; // Admin dashboard
   } else if (userRole === 3) {
     return <Navigate to="/user-dashboard" replace />; // User dashboard
   }
@@ -92,11 +92,11 @@ const App = () => (
             <Toaster />
             <Sonner position="top-right" closeButton />
             <Routes>
-              {/* Landing Page as default route */}
+              {/* Public routes - accessible without login */}
               <Route path="/" element={<LandingPage />} />
               <Route path="/home" element={<Navigate to="/" replace />} />
               
-              {/* Auth routes */}
+              {/* Auth routes - no login required */}
               <Route path="/signin" element={<SignIn />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/confirm-email" element={<ConfirmEmail />} />
@@ -108,11 +108,11 @@ const App = () => (
               {/* Admin routes (role 1) */}
               <Route path="/admin" element={<ProtectedRoute allowedRoles={[1]}><Dashboard /></ProtectedRoute>} />
               <Route path="/users" element={<ProtectedRoute allowedRoles={[1]}><Users /></ProtectedRoute>} />
-              <Route path="/settings" element={<ProtectedRoute allowedRoles={[1]}><Settings /></ProtectedRoute>} />
+              <Route path="/settings" element={<ProtectedRoute allowedRoles={[1, 3]}><Settings /></ProtectedRoute>} />
               <Route path="/reports" element={<ProtectedRoute allowedRoles={[1]}><Reports /></ProtectedRoute>} />
               <Route path="/analytics" element={<ProtectedRoute allowedRoles={[1]}><Analytics /></ProtectedRoute>} />
               
-              {/* User routes (role 3) - Make dashboard accessible directly */}
+              {/* User routes (role 3) */}
               <Route path="/user-dashboard" element={<ProtectedRoute allowedRoles={[3]}>
                 <UserDashboard />
               </ProtectedRoute>} />
